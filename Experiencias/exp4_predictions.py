@@ -1,6 +1,7 @@
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 import pandas as pd
+from sklearn.metrics import confusion_matrix
 
 """ Tk().withdraw()
 
@@ -58,8 +59,28 @@ y_pred = clf.predict(X_test)
 
 print(
     f"Classification report for classifier {clf}:\n"
+    f"\n"
     f"{classification_report(y_test, y_pred)}\n"
 )
+
+tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+
+print(f"True Positives: {tp}")
+print(f"False Positives: {fp}")
+print(f"True Negatives: {tn}")
+print(f"False Negatives: {fn}")
+
+# Calculate metrics
+accuracy = (tp + tn) / (tp + tn + fp + fn)
+precision = tp / (tp + fp)
+recall = tp / (tp + fn)
+f1_score = 2 * (precision * recall) / (precision + recall)
+
+# Print metrics
+print(f"Accuracy: {accuracy}")
+print(f"Precision: {precision}")
+print(f"Recall: {recall}")
+print(f"F1 Score: {f1_score}")
 
 #Predicting with previously removed sample data
 # Save the 'id_student' column in a separate variable

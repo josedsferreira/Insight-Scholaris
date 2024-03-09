@@ -1,42 +1,52 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-gender_mapping = {'M': 0, 'F': 1, 'Other': 2}
+# List of column names in datasets
+column_names = ["code_module","code_presentation","id_student","gender","region",\
+                "highest_education","imd_band","age_band","num_of_prev_attempts",\
+                    "studied_credits","disability","final_result"]
 
-disability_mapping = {'N': 0, 'Y': 1}
+# Define the mapping dictionaries
+gender_mapping = {'M': 1, 'F': 2, 'Other': 3, 'Unknown': 0}
 
-final_result_mapping = {'Pass': 1, 'Distinction': 1, 'Withdrawn': 0, 'Fail': 0}
+disability_mapping = {'N': 1, 'Y': 2, 'Unknown': 0}
 
-age_mapping = {'0-35': 0, '35-55': 1, '55<=': 2}
+final_result_mapping = {'Pass': 1, 'Distinction': 1, 'Withdrawn': 2, 'Fail': 2, 'Unknown': 0}
 
-highest_education_mapping = {'No Formal quals': 0, \
-                             'Lower Than A Level': 1, \
-                                'A Level or Equivalent': 2, \
-                                    'HE Qualification': 3, \
-                                        'Post Graduate Qualification': 4}
+age_mapping = {'0-35': 1, '35-55': 2, '55<=': 3, 'Unknown': 0}
 
-imd_band_mapping = {'0-10%': 0, '10-20': 1, '20-30%': 2, '30-40%': 3, '40-50%': 4, \
-                    '50-60%': 5, '60-70%': 6, '70-80%': 7, '80-90%': 8, '90-100%': 9}
+highest_education_mapping = {'No Formal quals': 1, \
+                             'Lower Than A Level': 2, \
+                                'A Level or Equivalent': 3, \
+                                    'HE Qualification': 4, \
+                                        'Post Graduate Qualification': 5, \
+                                            'Unknown': 0}
 
-code_presentation_mapping = {'2013B': 0, '2013J': 1, '2014B': 2, '2014J': 3}
+imd_band_mapping = {'0-10%': 1, '10-20': 2, '20-30%': 3, '30-40%': 4, '40-50%': 5, \
+                    '50-60%': 6, '60-70%': 7, '70-80%': 8, '80-90%': 9, '90-100%': 10, \
+                        'Unknown': 0}
 
-code_module_mapping = {'AAA': 0, 'BBB': 1, 'CCC': 2, 'DDD': 3, 'EEE': 4, 'FFF': 5, 'GGG': 6}
+code_presentation_mapping = {'2013B': 1, '2013J': 2, '2014B': 3, '2014J': 4, 'Unknown': 0}
 
-region_mapping = {'Scotland': 0, \
-                  'East Anglian Region': 1, \
-                    'London Region': 2, \
-                        'South Region': 3, \
-                            'North Western Region': 4, \
-                                'West Midlands Region': 5, \
-                                    'South West Region': 6, \
-                                        'East Midlands Region': 7, \
-                                            'Wales': 8, \
-                                                'Yorkshire Region': 9, \
-                                                    'North Region': 10, \
-                                                        'Ireland': 11, \
-                                                            'South East Region': 12, \
-                                                                'Central Region': 13, \
-                                                                    'North Western Region': 14}
+code_module_mapping = {'AAA': 1, 'BBB': 2, 'CCC': 3, 'DDD': 4, \
+                       'EEE': 5, 'FFF': 6, 'GGG': 7, 'Unknown': 0}
+
+region_mapping = {'Scotland': 1, \
+                  'East Anglian Region': 2, \
+                    'London Region': 3, \
+                        'South Region': 4, \
+                            'North Western Region': 5, \
+                                'West Midlands Region': 6, \
+                                    'South West Region': 7, \
+                                        'East Midlands Region': 8, \
+                                            'Wales': 9, \
+                                                'Yorkshire Region': 10, \
+                                                    'North Region': 11, \
+                                                        'Ireland': 12, \
+                                                            'South East Region': 13, \
+                                                                'Central Region': 14, \
+                                                                    'North Western Region': 15, \
+                                                                        'Unknown': 0}
 
 reverse_gender_mapping = {v: k for k, v in gender_mapping.items()}
 reverse_disability_mapping = {v: k for k, v in disability_mapping.items()}
@@ -61,6 +71,7 @@ def clean_data(df):
     if is_clean(df):
         return df
     else:
+        df = nans_to_unknown(df)
         df = encoder(df)
 
     return df
@@ -77,7 +88,7 @@ def remove_nans(df):
     """
     return df.dropna()
 
-def remove_nans_columns(df, column_list):
+def remove_nans_columns(df, column_list=column_names):
     """
     Remove rows with NaN values in the specified columns from the given DataFrame.
 
@@ -90,7 +101,7 @@ def remove_nans_columns(df, column_list):
     """
     return df.dropna(subset=column_list)
 
-def average_nans(df, column_list):
+def average_nans(df, column_list=column_names):
     """
     Fill missing values in the specified columns of a DataFrame with the column's mean.
 
@@ -105,7 +116,7 @@ def average_nans(df, column_list):
         df[column_name].fillna(df[column_name].mean(), inplace=True)
     return df
 
-def mode_nans(df, column_list):
+def mode_nans(df, column_list=column_names):
     """
     Fill missing values in the specified columns of a DataFrame with the mode value of each column.
 
@@ -120,7 +131,22 @@ def mode_nans(df, column_list):
         df[column_name].fillna(df[column_name].mode()[0], inplace=True)
     return df
 
-def remove_columns(df, column_list):
+def nans_to_unknown(df, column_list=column_names):
+    """
+    Fill missing values in the specified columns of a DataFrame with the string 'Unknown'.
+
+    Parameters:
+    - df (pandas.DataFrame): The DataFrame containing the columns with missing values.
+    - column_list (list): A list of column names to fill the missing values.
+
+    Returns:
+    - df (pandas.DataFrame): The DataFrame with missing values filled with the string 'Unknown'.
+    """
+    for column_name in column_list:
+        df[column_name].fillna(0, inplace=True)
+    return df
+
+def remove_columns(df, column_list=column_names):
     """
     Removes specified columns from a DataFrame.
 

@@ -8,8 +8,14 @@ from tkinter.filedialog import askopenfilename
 
 def create_engine(database_name):
     """
-    Create a sqlalchemy connection to a PostgreSQL database
-    database_name: Name of the database
+    Create and return a SQLAlchemy engine for connecting to a PostgreSQL database.
+
+    Parameters:
+    - database_name (str): The name of the database to connect to.
+
+    Returns:
+    - engine (sqlalchemy.engine.Engine): The SQLAlchemy engine object.
+
     """
     # Get user and password from .env
     load_dotenv()
@@ -43,10 +49,18 @@ def store_dataset(df, database_name, dataset_name):
 
 def download_dataset(database_name, dataset_name):
     """
-    Download a dataset from a PostgreSQL database
-    database_name: Name of the database
-    dataset_name: Name of the dataset
-    Return: DataFrame
+    Downloads a dataset from a PostgreSQL database.
+
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - dataset_name (str): The name of the dataset to download.
+
+    Returns:
+    - df (pandas.DataFrame): The downloaded dataset as a pandas DataFrame.
+
+    Raises:
+    - SQLAlchemyError: If an error occurs while downloading the dataset.
+
     """
     try:
         # Create a connection to PostgreSQL database
@@ -59,6 +73,12 @@ def download_dataset(database_name, dataset_name):
         print(str(e))
 
 def choose_file():
+    """
+    Opens a file picker dialog and returns the path of the selected file.
+
+    Returns:
+        str: The path of the selected file.
+    """
     # Hide the main tkinter window
     Tk().withdraw()
 
@@ -68,7 +88,16 @@ def choose_file():
     # Return the path of the selected file
     return filename
 
-def open_file(path):
+def open_dataframe_from_file(path):
+    """
+    Opens a dataframe from a file.
+
+    Args:
+        path (str): The path to the file.
+
+    Returns:
+        pandas.DataFrame or None: The dataframe read from the file, or None if an error occurred.
+    """
     root_path, file_extension = os.path.splitext(path)
     try:
         if file_extension == '.csv':
@@ -86,9 +115,16 @@ def open_file(path):
 
 def obtain_dataset_list(database_name):
     """
-    Obtain a list of the datasets in a PostgreSQL database
-    database_name: Name of the database
-    Return: List of datasets
+    Obtain the list of datasets from the specified PostgreSQL database.
+
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+
+    Returns:
+    - datasets (list): A list of dataset names in the database.
+
+    Raises:
+    - SQLAlchemyError: If an error occurs while obtaining the list of datasets.
     """
     try:
         # Create a connection to PostgreSQL database
