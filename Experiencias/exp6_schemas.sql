@@ -1,10 +1,16 @@
 CREATE TABLE dataFrames (
-    dataframe_id SERIAL PRIMARY KEY,
-    dataframe_name VARCHAR(255),
+    df_id SERIAL PRIMARY KEY,
+    df_name VARCHAR(255),
+    df_type integer, /* 1- de treino, 2- por prever, 3- já previsto */
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 /* O dataframe será guardado de modo encoded para ser mais eficiente */
+/*
+tipo 1 - de treino, usa todas as colunas
+tipo 2 - por prever, não usa coluna final_result
+tipo 3 - já previsto, usa todas as colunas (se calhar este tipo não é necessário)
+*/
 create TABLE data (
     data_id SERIAL PRIMARY KEY,
     dataframe_id INTEGER REFERENCES DataFrames(dataframe_id),
@@ -20,14 +26,14 @@ create TABLE data (
     studied_credits INTEGER,
     disability INTEGER,
     final_result INTEGER,
-)
+);
 
 /* O modelo será guardado no computador e na base de dados apenas se guarda o file path */
 CREATE Table models (
     model_id SERIAL PRIMARY KEY,
     model_name VARCHAR(255),
     model_type VARCHAR(255),
-    model_save_path VARCHAR(255),
+    model_file_name VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -35,7 +41,7 @@ CREATE Table models (
 create table evaluations (
     evaluation_id SERIAL PRIMARY KEY,
     model_id INTEGER REFERENCES models(model_id),
-    fp integer,
+    fp INTEGER,
     fn INTEGER,
     tp INTEGER,
     tn INTEGER,
@@ -49,3 +55,4 @@ create table parameters (
     parameter_list VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+

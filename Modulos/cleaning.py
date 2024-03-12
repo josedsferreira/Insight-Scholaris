@@ -1,62 +1,9 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
+import os
+import json
 
-# List of column names in datasets
-column_names = ["code_module","code_presentation","id_student","gender","region",\
-                "highest_education","imd_band","age_band","num_of_prev_attempts",\
-                    "studied_credits","disability","final_result"]
-
-# Define the mapping dictionaries
-gender_mapping = {'M': 1, 'F': 2, 'Other': 3, 'Unknown': 0}
-
-disability_mapping = {'N': 1, 'Y': 2, 'Unknown': 0}
-
-final_result_mapping = {'Pass': 1, 'Distinction': 1, 'Withdrawn': 2, 'Fail': 2, 'Unknown': 0}
-
-age_mapping = {'0-35': 1, '35-55': 2, '55<=': 3, 'Unknown': 0}
-
-highest_education_mapping = {'No Formal quals': 1, \
-                             'Lower Than A Level': 2, \
-                                'A Level or Equivalent': 3, \
-                                    'HE Qualification': 4, \
-                                        'Post Graduate Qualification': 5, \
-                                            'Unknown': 0}
-
-imd_band_mapping = {'0-10%': 1, '10-20': 2, '20-30%': 3, '30-40%': 4, '40-50%': 5, \
-                    '50-60%': 6, '60-70%': 7, '70-80%': 8, '80-90%': 9, '90-100%': 10, \
-                        'Unknown': 0}
-
-code_presentation_mapping = {'2013B': 1, '2013J': 2, '2014B': 3, '2014J': 4, 'Unknown': 0}
-
-code_module_mapping = {'AAA': 1, 'BBB': 2, 'CCC': 3, 'DDD': 4, \
-                       'EEE': 5, 'FFF': 6, 'GGG': 7, 'Unknown': 0}
-
-region_mapping = {'Scotland': 1, \
-                  'East Anglian Region': 2, \
-                    'London Region': 3, \
-                        'South Region': 4, \
-                            'North Western Region': 5, \
-                                'West Midlands Region': 6, \
-                                    'South West Region': 7, \
-                                        'East Midlands Region': 8, \
-                                            'Wales': 9, \
-                                                'Yorkshire Region': 10, \
-                                                    'North Region': 11, \
-                                                        'Ireland': 12, \
-                                                            'South East Region': 13, \
-                                                                'Central Region': 14, \
-                                                                    'North Western Region': 15, \
-                                                                        'Unknown': 0}
-
-reverse_gender_mapping = {v: k for k, v in gender_mapping.items()}
-reverse_disability_mapping = {v: k for k, v in disability_mapping.items()}
-reverse_final_result_mapping = {v: k for k, v in final_result_mapping.items()}
-reverse_age_mapping = {v: k for k, v in age_mapping.items()}
-reverse_highest_education_mapping = {v: k for k, v in highest_education_mapping.items()}
-reverse_imd_band_mapping = {v: k for k, v in imd_band_mapping.items()}
-reverse_code_presentation_mapping = {v: k for k, v in code_presentation_mapping.items()}
-reverse_code_module_mapping = {v: k for k, v in code_module_mapping.items()}
-reverse_region_mapping = {v: k for k, v in region_mapping.items()}
+column_names = os.getenv('COLUMN_NAMES').split(',')
 
 def clean_data(df):
     """
@@ -205,15 +152,18 @@ def decoder(df):
     Returns:
         pandas.DataFrame: The DataFrame with the categorical variables decoded.
     """
-    df['gender'] = df['gender'].map(reverse_gender_mapping)
-    df['disability'] = df['disability'].map(reverse_disability_mapping)
-    df['final_result'] = df['final_result'].map(reverse_final_result_mapping)
-    df['age_band'] = df['age_band'].map(reverse_age_mapping)
-    df['highest_education'] = df['highest_education'].map(reverse_highest_education_mapping)
-    df['imd_band'] = df['imd_band'].map(reverse_imd_band_mapping)
-    df['code_presentation'] = df['code_presentation'].map(reverse_code_presentation_mapping)
-    df['code_module'] = df['code_module'].map(reverse_code_module_mapping)
-    df['region'] = df['region'].map(reverse_region_mapping)
+
+    # Open the JSON file
+    with open('decoding.json', 'r') as f:
+        # Load the JSON file into a dictionary
+        mappings = json.load(f)
+
+    # Replace values in each column based on the mappings
+    for column, mapping in mappings.items():
+        if column in df.columns:
+            # Convert keys in mapping to int, because JSON keys are always strings
+            mapping = {int(k): v for k, v in mapping.items()}
+            df[column] = df[column].map(mapping)
 
     return df
 
@@ -227,16 +177,19 @@ def encoder(df):
     Returns:
     pandas.DataFrame: The DataFrame with the categorical variables encoded.
     """
-    df['gender'] = df['gender'].map(gender_mapping)
-    df['disability'] = df['disability'].map(disability_mapping)
-    df['final_result'] = df['final_result'].map(final_result_mapping)
-    df['age_band'] = df['age_band'].map(age_mapping)
-    df['highest_education'] = df['highest_education'].map(highest_education_mapping)
-    df['imd_band'] = df['imd_band'].map(imd_band_mapping)
-    df['code_presentation'] = df['code_presentation'].map(code_presentation_mapping)
-    df['code_module'] = df['code_module'].map(code_module_mapping)
-    df['region'] = df['region'].map(region_mapping)
-    
+
+    # Open the JSON file
+    with open('encoding.json', 'r') as f:
+        # Load the JSON file into a dictionary
+        mappings = json.load(f)
+
+    # Replace values in each column based on the mappings
+    for column, mapping in mappings.items():
+        if column in df.columns:
+            # Convert keys in mapping to int, because JSON keys are always strings
+            mapping = {int(k): v for k, v in mapping.items()}
+            df[column] = df[column].map(mapping)
+
     return df
     
 def is_clean(df):

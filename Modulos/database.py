@@ -72,6 +72,18 @@ def download_dataset(database_name, dataset_name):
         print(f"An error occurred while downloading the dataset {dataset_name} from {database_name}.")
         print(str(e))
 
+def store_model(model, database_name, model_name):
+    pass
+
+def download_model(database_name, model_name):
+    pass
+
+def store_prediction(df, database_name, dataset_name):
+    pass
+
+def download_prediction(database_name, dataset_name):
+    pass
+
 def choose_file():
     """
     Opens a file picker dialog and returns the path of the selected file.
