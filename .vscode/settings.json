@@ -9,6 +9,16 @@
             "name": "Exploration_Con",
             "database": "exploration1",
             "username": "postgres"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "askForPassword": true,
+            "driver": "PostgreSQL",
+            "name": "IS_DB_ProtoCon",
+            "database": "is_db_prototype",
+            "username": "postgres"
         }
     ]
 }

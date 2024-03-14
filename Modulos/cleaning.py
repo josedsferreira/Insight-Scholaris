@@ -15,7 +15,7 @@ def clean_data(df):
     Returns:
         pandas.DataFrame: The cleaned DataFrame.
     """
-    if is_clean(df):
+    if is_df_clean(df):
         return df
     else:
         df = nans_to_unknown(df)
@@ -192,7 +192,7 @@ def encoder(df):
 
     return df
     
-def is_clean(df):
+def is_df_clean(df):
     """
     Checks if a DataFrame is clean.
 
@@ -207,3 +207,27 @@ def is_clean(df):
         return False
     else:
         return True
+    
+def is_df_encoded(df):
+    """
+    Checks if a DataFrame is encoded.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame to be checked.
+
+    Returns:
+        bool: True if the DataFrame is encoded, False otherwise.
+    """
+    # Open the JSON file
+    with open('encoding.json', 'r') as f:
+        # Load the JSON file into a dictionary
+        mappings = json.load(f)
+
+    for column, mapping in mappings.items():
+        if column in df.columns:
+            # Check if all values in the column are in the mapping
+            if not set(df[column].unique()).issubset(set(mapping.values())):
+                return False
+
+    return True
+    
