@@ -1,6 +1,8 @@
 import pandas as pd
 
-data = pd.read_csv('studentinfo.csv')
+filename = "C:/Users/josed/OneDrive - Ensino Lusófona/3º ano 2º semestre/Projeto II/Insight Scholaris/Experiencias/studentInfo.csv"
+
+data = pd.read_csv(filename)
 
 g_mapping = {'M': 0, 'F': 1}
 d_mapping = {'N': 0, 'Y': 1}
@@ -44,9 +46,10 @@ print(
     f"{classification_report(y_test, y_pred)}\n"
 )
 
+
 new_data = pd.DataFrame({
     'code_module': ['AAA', 'BBB'],
-    'code_presentation': ['2010J', '2010J'],
+    'code_presentation': ['2013J', '2013J'],
     'gender': [1, 0],
     'region': ['East Anglian Region', 'Scotland'],
     'highest_education': ['HE Qualification', 'A Level or Equivalent'],
