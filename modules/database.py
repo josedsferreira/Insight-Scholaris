@@ -735,6 +735,3 @@ def open_dataframe_from_file(path):
         print(f"File not found: {path}")
     except Exception as e:
         print(f"An error occurred while opening the file: {str(e)}")
-
-def store_prediction(df, database_name, dataset_name):
-    pass
