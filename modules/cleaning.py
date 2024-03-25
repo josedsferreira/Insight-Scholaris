@@ -2,7 +2,9 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 import os
 import json
+from dotenv import load_dotenv
 
+load_dotenv()
 column_names = os.getenv('COLUMN_NAMES').split(',')
 
 def clean_data(df):

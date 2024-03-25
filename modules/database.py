@@ -8,28 +8,26 @@ from dotenv import load_dotenv
 import os
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-import cleaning
+from modules import cleaning
 import bcrypt
 
-def create_engine(database_name):
+def connection_link(database_name):
     """
-    Create and return a SQLAlchemy engine for connecting to a PostgreSQL database.
-
+    Create a connection link to a PostgreSQL database.
+    
     Parameters:
-    - database_name (str): The name of the database to connect to.
-
+    - database_name (str): The name of the database.
+    
     Returns:
-    - engine (sqlalchemy.engine.Engine): The SQLAlchemy engine object.
-
+    - connection_link (str): The connection link to the database.
     """
+
     # Get user and password from .env
     load_dotenv()
     user = os.getenv('USER_POSTGRES')
     password = os.getenv('PASSWORD_POSTGRES')
     connection_link = "postgresql://" + user + ":" + password + "@localhost:5432/" + database_name
-    # Create a connection to PostgreSQL database
-    engine = create_engine(connection_link)
-    return engine
+    return connection_link
 
 def store_dataset(df, db_name, df_name, df_type):
     """
@@ -43,7 +41,7 @@ def store_dataset(df, db_name, df_name, df_type):
     """
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(db_name)
+        engine = create_engine(connection_link(db_name))
         
         #encode the dataframe if it is not encoded
         if not cleaning.is_df_encoded(df):
@@ -89,7 +87,7 @@ def retrieve_dataset(database_name, df_id):
     """
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select rows from the data table
         query = f"""
@@ -121,7 +119,7 @@ def list_datasets(database_name):
     """
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select all records from the dataFrames table
         query = "SELECT * FROM dataFrames"
@@ -148,7 +146,7 @@ def store_model(model, database_name, model_name, model_type):
 
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Store the model in the database
         with engine.connect() as connection:
@@ -207,7 +205,7 @@ def retrieve_model(database_name, model_id):
     """
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select rows from the model table
         query = f"""
@@ -252,7 +250,7 @@ def list_models(database_name):
     """
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select all records from the dataFrames table
         query = "SELECT * FROM models"
@@ -284,7 +282,7 @@ def update_df_history(database_name, df_id, change):
     """
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Store the model in the database
         with engine.connect() as connection:
@@ -321,7 +319,7 @@ def retrieve_df_history(database_name, df_id):
     """
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select rows from the model table
         query = f"""
@@ -363,7 +361,7 @@ def store_evaluations(database_name, model_id, fp, fn, tp, tn):
     """
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Store the evaluation in the database
         with engine.connect() as connection:
@@ -387,7 +385,6 @@ def store_evaluations(database_name, model_id, fp, fn, tp, tn):
         print(f"An error occurred while storing the model {model_id} eval in {database_name}.")
         print(str(e))
 
-
 def retrieve_evaluations(database_name, model_id):
     """
     retrieves the evaluations of a model from a PostgreSQL database.
@@ -399,7 +396,7 @@ def retrieve_evaluations(database_name, model_id):
 
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select rows from the model table
         query = f"""
@@ -430,7 +427,7 @@ def retrieve_parameters(database_name, model_id):
     """
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select rows from the model table
         query = f"""
@@ -464,10 +461,11 @@ def create_user(full_name, email, num_id, type, database_name):
     """
     # Hash the default password
     hashed_default_password = bcrypt.hashpw("1234".encode(), bcrypt.gensalt())
+    string_password = hashed_default_password.decode('utf-8')
 
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Store the user in the database
         with engine.connect() as connection:
@@ -476,50 +474,57 @@ def create_user(full_name, email, num_id, type, database_name):
             query = text(f"""
                          INSERT INTO users (
                          full_name, email, password, num_id, type) 
-                         VALUES (:full_name, :email, :num_id, :type) 
+                         VALUES (:full_name, :email, :password, :num_id, :type) 
                          RETURNING user_id
                          """)
             
-            result = connection.execute(query, \
-                                        full_name=full_name, \
-                                                email=email, \
-                                                    password=hashed_default_password, \
-                                                    num_id=num_id, \
-                                                        type=type)
+            params = {
+                        'full_name': full_name,
+                        'email': email,
+                        'password': string_password,
+                        'num_id': num_id,
+                        'type': type
+                    }
+            
+            result = connection.execute(query, params)
+            connection.commit()
+            print(result)
             
             user_id = result.fetchone()[0]
 
-            if type == 1:
-                # Insert a record into the admins table
-                query = text(f"""
-                             INSERT INTO administrators (
-                             admin_id) 
-                             VALUES (:user_id)
-                             """)
-                connection.execute(query, user_id=user_id)
-            elif type == 2:
-                # Insert a record into the teachers table
-                query = text(f"""
-                             INSERT INTO teachers (
-                             teacher_id) 
-                             VALUES (:user_id)
-                             """)
-                connection.execute(query, user_id=user_id)
-            else:
-                # Insert a record into the scientist table
-                query = text(f"""
-                             INSERT INTO scientists (
-                             scientist_id) 
-                             VALUES (:user_id)
-                             """)
-                connection.execute(query, user_id=user_id)
+            if False: #tabelas de tipo de utilizador não necessarias
+                if type == 1:
+                    # Insert a record into the admins table
+                    query = text(f"""
+                                INSERT INTO administrators (
+                                admin_id) 
+                                VALUES (:user_id)
+                                """)
+                    params = {'user_id': user_id}
+                    connection.execute(query, params)
+                elif type == 2:
+                    # Insert a record into the teachers table
+                    query = text(f"""
+                                INSERT INTO teachers (
+                                teacher_id) 
+                                VALUES (:user_id)
+                                """)
+                    params = {'user_id': user_id}
+                    connection.execute(query, params)
+                else:
+                    # Insert a record into the scientist table
+                    query = text(f"""
+                                INSERT INTO scientists (
+                                scientist_id) 
+                                VALUES (:user_id)
+                                """)
+                    params = {'user_id': user_id}
+                    connection.execute(query, params)
             
-
     except SQLAlchemyError as e:
         print(f"An error occurred while storing the user {email} in {database_name}.")
         print(str(e))
         
-
 def list_users(database_name):
     """
     Lists all users stored in the PostgreSQL database.
@@ -533,7 +538,7 @@ def list_users(database_name):
 
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select all records from the users table
         query = """SELECT 
@@ -568,7 +573,7 @@ def update_user(database_name, email, column_to_update, new_value):
     if column_to_update in ['full_name', 'email', 'num_id']:
         try:
             # Create a connection to PostgreSQL database
-            engine = create_engine(database_name)
+            engine = create_engine(connection_link(database_name))
 
             # Store the user in the database
             with engine.connect() as connection:
@@ -605,7 +610,7 @@ def change_password(database_name, email, new_password, old_password):
 
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Store the user in the database
         with engine.connect() as connection:
@@ -645,7 +650,7 @@ def deactivate_user(database_name, email):
 
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Store the user in the database
         with engine.connect() as connection:
@@ -664,6 +669,68 @@ def deactivate_user(database_name, email):
         print(f"An error occurred while deactivating the user {email} in {database_name}.")
         print(str(e))
 
+def user_is_valid(database_name, email):
+    """
+    Check if a user exists in the users table.
+    
+    Parameters:
+    - database_name (str): The name of the database.
+    - email (str): The email of the user.
+    
+    Returns:
+    - exists (bool): True if the user exists, False otherwise.
+    """
+
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Store the user in the database
+        with engine.connect() as connection:
+
+            # Check if the user exists and is active
+            sql = text("SELECT COUNT(*) FROM users WHERE email = :email and is_active = true")
+            result = connection.execute(sql, {'email': email})
+            count = result.fetchone()[0]
+
+            if count > 0:
+                return True
+            else:
+                return False
+
+    except SQLAlchemyError as e:
+        print(f"An error occurred while checking if user {email} exists in {database_name}.")
+        print(str(e))
+
+def user_type(database_name, email):
+    """
+    Get the type of a user in the users table.
+    
+    Parameters:
+    - database_name (str): The name of the database.
+    - email (str): The email of the user.
+    
+    Returns:
+    - type (int): The type of the user.
+    """
+
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Store the user in the database
+        with engine.connect() as connection:
+
+            # Get the type of the user
+            result = connection.execute(text("SELECT type FROM users WHERE email = :email"), {'email': email})
+            user_type = result.fetchone()[0]
+
+            return user_type
+
+    except SQLAlchemyError as e:
+        print(f"An error occurred while getting the type of user {email} in {database_name}.")
+        print(str(e))
+
 def is_password_correct(database_name, email, password):
     """
     Check if the password of a user is correct.
@@ -676,17 +743,17 @@ def is_password_correct(database_name, email, password):
 
     try:
         # Create a connection to PostgreSQL database
-        engine = create_engine(database_name)
+        engine = create_engine(connection_link(database_name))
 
         # Store the user in the database
         with engine.connect() as connection:
 
             # Get the hashed password from the database
-            result = connection.execute("SELECT password FROM users WHERE email = :email", email=email)
+            result = connection.execute(text("SELECT password FROM users WHERE email = :email"), {'email': email})
             db_password = result.fetchone()[0]
 
             # check if password is correct
-            if bcrypt.checkpw(password.encode(), db_password):
+            if bcrypt.checkpw(password.encode('utf-8'), db_password.encode('utf-8')):
                 return True
             else:
                 return False
