@@ -1,6 +1,20 @@
 /* Variaveis para reutilizar */
 :root {
+    /* Login box size */
     --login-box-width: 40%;
+
+    /* ==== Colors ===== */
+    --body-color: white;
+    --sidebar-color: lightgrey;
+    --bezzel-color: lightgrey;
+    --primary-color: grey;
+    --text-color: black;
+
+    /* ===== Transtions ===== */
+    --tran-02: all 0.2s ease;
+    --tran-03: all 0.3s ease;
+    --tran-04: all 0.4s ease;
+    --tran-05: all 0.5s ease;
 }
 /* Adaptar a variavel ao tamanho do ecra */
 @media screen and (max-width: 600px) {
@@ -12,6 +26,147 @@
     :root {
         --login-box-width: 400px;
     }
+}
+
+/* BASE TEMPLATE */
+
+* {
+    margin:0;
+    padding:0;
+    box-sizing: border-box;
+}
+
+body {
+    height: 100vh;
+    background-color: var(--body-color);
+}
+/* ==== Sidebar ==== */
+.sidebar .text{
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-color);
+    transition: var(--tran-03);
+    white-space: nowrap;
+    opacity: 1;
+}
+.sidebar.close .text{
+    opacity: 0;
+}
+.sidebar .image{
+    min-width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 250px;
+    padding: 10px 14px;
+    background: var(--sidebar-color);
+    transition: var(--tran-04);
+    z-index: 100;
+}
+.sidebar .menu{
+    margin-top: 35px;
+}
+.sidebar.close {
+    width: 88px;
+}
+.sidebar li{
+    height: 60px;
+    margin-top: 10px;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.sidebar li .icon{
+    font-size: 30px;
+    min-width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sidebar li .icon, 
+.sidebar li .text{
+    color: var(--text-color);
+    transition: var(--tran-02);
+}
+.sidebar header {
+    position: relative;
+    
+}
+.sidebar .image-text img{
+    width: 40px;
+}
+.sidebar header .image-text{
+    display: flex;
+    align-items: center;
+}
+ header .image-text .header-text{
+    display: flex;
+    flex-direction: column;
+ }
+.header-text .name{
+    font-weight: 600;
+}
+.header-text .profession{
+    margin-top: -2px;
+}
+.sidebar header .toggle {
+    position: absolute;
+    top: 50%;
+    right: -25px;
+    transform: translateY(-50%) rotate(180deg);
+    height: 25px;
+    width: 25px;
+    background-color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--bezzel-color);
+    font-size: 22px;
+    transition: var(--tran-03);
+}
+.sidebar.close header .toggle{
+    transform: translateY(-50%);
+}
+.sidebar li a{
+    text-decoration: none;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    transition: var(--tran-04);
+}
+.sidebar li a:hover{
+    background-color: var(--primary-color);
+}
+.sidebar li a:hover .icon,
+.sidebar li a:hover .text {
+    color: var(--sidebar-color);
+} 
+.sidebar .menu-bar {
+    height: calc(100% - 50px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.sidebar .bottom-content li{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.sidebar .bottom-content li{
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 /* MAIN MENU */
