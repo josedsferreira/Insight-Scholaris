@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<h2 id="title">Alterar Palavra-Passe</h2>
+
+<div>
+    <div id="form-box">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li id="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{url_for('change_pw')}}" method="post">
+            <div class="form-floating mb-3">
+                <input type="password" class="form-control" name="new_pw" id="new_pw">
+                <label for="floatingInput">Nova palavra-passe</label>
+            </div>
+            <div class="form-floating">
+                <input type="password" class="form-control" name="confirm" id="password">
+                <label for="floatingPassword">Confirme a nova palavra-passe</label>
+    </div>
+        </div> <!-- Botao de submeter deve estar fora da caixa -->
+            <div id="submit-bt-div">
+                <input class="btn btn-primary" type="submit" value="Alterar">
+            </div>
+        </form>
+</div>
+
+{% endblock %}

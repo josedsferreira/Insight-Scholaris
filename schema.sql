@@ -75,6 +75,7 @@ create table users (
     type integer, /* 1-Administrador, 2-Docente, 3-CientistaDados */
     is_active BOOLEAN DEFAULT true,
     password VARCHAR(255),
+    default_pw BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

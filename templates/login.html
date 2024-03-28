@@ -15,33 +15,34 @@
 <body class="login-body">
     <img class="logo-big" src="/static/img/logo.svg" alt="Logo Insight Scholaris">
 
-    <div id="login-box">
-      <h3>Login</h3>
+    <div id="form-box">
+		<h3>Login</h3>
 
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <ul class=flashes id="login-error">
-          {% for message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-          </ul>
-        {% endif %}
-      {% endwith %}
+		{% with messages = get_flashed_messages(with_categories=true) %}
+        	{% if messages %}
+            	<ul class="flashes">
+            		{% for category, message in messages %}
+                		<li id="{{ category }}">{{ message }}</li>
+            		{% endfor %}
+            	</ul>
+        	{% endif %}
+    	{% endwith %}
 
-      <form action="{{url_for('login')}}" method="post">
-      <div class="form-floating mb-3">
-        <input type="email" class="form-control" name="email" id="email" placeholder="nome@exemplo.com">
-        <label for="floatingInput">Endereço de Email</label>
-      </div>
-      <div class="form-floating">
-        <input type="password" class="form-control" name="password" id="password" placeholder="Palavra-Passe">
-        <label for="floatingPassword">Palavra-Passe</label>
-      </div>
-    </div>
-    <div id="login-bt-div">
-      <input class="btn btn-primary" type="submit" value="Submeter">
-    </div>
-      </form>
+    <form action="{{url_for('login')}}" method="post">
+    	<div class="form-floating mb-3">
+        	<input type="email" class="form-control" name="email" id="email" placeholder="nome@exemplo.com">
+        	<label for="floatingInput">Endereço de Email</label>
+        </div>
+        <div class="form-floating">
+        	<input type="password" class="form-control" name="password" id="password" placeholder="Palavra-Passe">
+        	<label for="floatingPassword">Palavra-Passe</label>
+      	</div>
+
+	</div> <!-- Botao de login esta fora da login box -->
+    	<div id="submit-bt-div">
+      		<input class="btn btn-primary" type="submit" value="Submeter">
+    	</div>
+    </form>
     
 
 </body>

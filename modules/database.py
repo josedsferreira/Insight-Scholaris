@@ -458,6 +458,9 @@ def create_user(full_name, email, num_id, type, database_name):
     - num_id (int): The work ID of the user.
     - type (int): The type of user account. (1=Admin, 2=teacher, 3=DataScientist)
     - database_name (str): The name of the database.
+
+    Returns:
+    - success (bool): True if the user was created successfully, False otherwise.
     """
     # Hash the default password
     hashed_default_password = bcrypt.hashpw("1234".encode(), bcrypt.gensalt())
@@ -488,11 +491,11 @@ def create_user(full_name, email, num_id, type, database_name):
             
             result = connection.execute(query, params)
             connection.commit()
-            print(result)
             
-            user_id = result.fetchone()[0]
-
             if False: #tabelas de tipo de utilizador não necessarias
+            
+                user_id = result.fetchone()[0]
+            
                 if type == 1:
                     # Insert a record into the admins table
                     query = text(f"""
@@ -521,9 +524,11 @@ def create_user(full_name, email, num_id, type, database_name):
                     params = {'user_id': user_id}
                     connection.execute(query, params)
             
+            return True #user created successfully
     except SQLAlchemyError as e:
         print(f"An error occurred while storing the user {email} in {database_name}.")
         print(str(e))
+        return False #user not created
         
 def list_users(database_name):
     """
@@ -597,7 +602,7 @@ def update_user(database_name, email, column_to_update, new_value):
     else:
         print(f"Column {column_to_update} not valid.")
 
-def change_password(database_name, email, new_password, old_password):
+def change_password(database_name, email, new_password):
     """
     Change the password of a user in the users table.
     
@@ -605,7 +610,6 @@ def change_password(database_name, email, new_password, old_password):
     - database_name (str): The name of the database.
     - email (str): The email of the user to update.
     - new_password: The new password of the user.
-    - old_password: The old password of the user to confirm security.
     """
 
     try:
@@ -615,29 +619,32 @@ def change_password(database_name, email, new_password, old_password):
         # Store the user in the database
         with engine.connect() as connection:
 
+            # Hash the new password
+            new_password_hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
+            string_password = new_password_hashed.decode('utf-8')
+
+            query = text("""
+                         UPDATE users 
+                         SET 
+                         password = :new_password, 
+                         default_pw = FALSE 
+                         WHERE email = :email
+                         """)
+            
+            params = {
+                        'new_password': string_password,
+                        'email': email
+                    }
+
             # Get the hashed password from the database
-            result = connection.execute("SELECT password FROM users WHERE email = :email", email=email)
-            db_password = result.fetchone()[0]
+            result = connection.execute(query, params)
+            connection.commit()
+            return True #password change successful
 
-            # check if old password is correct
-            if bcrypt.checkpw(old_password.encode(), db_password):
-
-                # Hash the new password
-                new_password_hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
-
-                # Update the user in the users table
-                query = text("""
-                            UPDATE users
-                            SET 
-                            password = :new_password
-                            WHERE email = :email
-                            """)
-
-                connection.execute(query, new_password=new_password_hashed, email=email)
-            else:
-                print("The old password is incorrect.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    except SQLAlchemyError as e:
+        print(f"An error occurred while changing the password of user {email} in {database_name}.")
+        print(str(e))
+        return False #password change failed
 
 def deactivate_user(database_name, email):
     """
@@ -702,7 +709,7 @@ def user_is_valid(database_name, email):
         print(f"An error occurred while checking if user {email} exists in {database_name}.")
         print(str(e))
 
-def user_type(database_name, email):
+def user_info(database_name, email):
     """
     Get the type of a user in the users table.
     
@@ -712,6 +719,7 @@ def user_type(database_name, email):
     
     Returns:
     - type (int): The type of the user.
+    - default_pw (bool): True if the user is using the default password, False otherwise.
     """
 
     try:
@@ -721,11 +729,11 @@ def user_type(database_name, email):
         # Store the user in the database
         with engine.connect() as connection:
 
-            # Get the type of the user
-            result = connection.execute(text("SELECT type FROM users WHERE email = :email"), {'email': email})
-            user_type = result.fetchone()[0]
+            # Get the type of the user and the default_pw value
+            result = connection.execute(text("SELECT type, default_pw FROM users WHERE email = :email"), {'email': email})
+            user_type, default_pw = result.fetchone()
 
-            return user_type
+            return user_type, default_pw
 
     except SQLAlchemyError as e:
         print(f"An error occurred while getting the type of user {email} in {database_name}.")
