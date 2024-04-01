@@ -1,4 +1,4 @@
-/* Variaveis para reutilizar */
+/* ========== Variaveis para reutilizar ========== */
 :root {
     /* form box size */
     --form-box-width: 40%;
@@ -32,11 +32,19 @@
     }
 }
 
-/* GENERAL CSS */
+/* ========== GENERAL CSS ========== */
 #title {
     position: absolute;
+    display: flex;
+    align-items: flex-start;
     top: 10px;
     left: 103px;
+}
+#title a {
+    margin: 0;
+}
+#title h2 {
+    margin: 0 0 0 10px;
 }
 .option-button {
     width: var(--option-box-width);
@@ -51,9 +59,11 @@
 .option-button:hover .text{
     color: var(--body-color);
 }
+#back-button:hover {
+    color: var(--body-color);
+}
 
-
-/* BASE TEMPLATE */
+/* ========== BASE TEMPLATE ========== */
 
 * {
     margin:0;
@@ -62,10 +72,10 @@
 }
 
 body {
-    height: 100vh;
+    /* height: 100vh; */
     background-color: var(--body-color);
 }
-/* ==== Sidebar ==== */
+/* ========== Sidebar ========== */
 .sidebar .text{
     font-size: 16px;
     font-weight: 500;
@@ -194,14 +204,14 @@ body {
     padding-bottom: 10px;
 }
 
-/* MAIN MENU */
+/* ========== MAIN MENU ========== */
 
 .main-menu-body {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    margin: 0;
+    margin: 0 0 0 88px;
     background-color: white;
     overflow: hidden;
 }
@@ -213,8 +223,11 @@ body {
 }
 #icon-button {
     position: absolute;
-    bottom: 10px;
-    right: 10px;
+    bottom: 70px;
+    right: 70px;
+}
+#icon-button:hover {
+    color: var(--body-color);
 }
 #icon-image {
     width: 100%;
@@ -234,6 +247,9 @@ body {
     margin: 0;
     background-size: cover;
 }
+.menu-button-img:hover {
+    color: var(--body-color);
+}
 .button-roll {
     display: flex;
     justify-content: center;
@@ -244,7 +260,7 @@ body {
     bottom: 50px;;
 }
 
-/* Bootstrap Override */
+/* ========== Bootstrap Override ========== */
 .btn-primary {
     background-color: lightgrey;
     color: black;
@@ -267,10 +283,10 @@ body {
 }
 .btn.btn-primary:hover {
     background-color: var(--primary-color) !important;
+    color: var(--body-color) !important;
 }
 
-
-/* FORMS */
+/* ========== FORMS ========== */
 .login-body {
     display: flex;
     flex-direction: column;
@@ -307,4 +323,17 @@ body {
 }
 #info {
     color: green;
+}
+#form-title {
+    margin-bottom: 10px;
+}
+
+/* ========== TABLE ========== */
+#table-box {
+    margin: 15px 0 15px 0;
+    height: 400px;
+    overflow: auto;
+}
+tr {
+    text-align: left !important;
 }

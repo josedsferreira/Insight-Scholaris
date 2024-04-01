@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<h2 id="title">Administração</h2>
+
+<div id="options">
+    <a class="btn btn-primary option-button" href="{{ url_for('create_user') }}">
+        <span class="text nav-text">Criar conta</span>
+    </a>
+
+    <a class="btn btn-primary option-button" href="{{ url_for('deactivate_acc') }}">
+        <span class="text nav-text">Desativar conta</span>
+    </a>
+</div>
+
+{% endblock %}

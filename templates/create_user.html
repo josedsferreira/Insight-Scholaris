@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div id="title">
+    <a class="btn btn-primary" id="back-button" href="{{ url_for('admin') }}">
+        <i class="bi bi-chevron-left"></i>
+        <span class="text nav-text">Voltar</span>
+    </a>
+    <h2>
+        Criar conta
+    </h2>
+</div>
+
+<div>
+    <div id="form-box">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li id="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{url_for('create_user')}}" method="post">
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" name="fullname">
+                <label for="floatingInput">Nome Completo</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" name="email">
+                <label for="floatingInput">E-mail</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" name="num_id">
+                <label for="floatingInput">Numero ID</label>
+            </div>
+            <select class="form-select" aria-label="Tipo de conta" name="type">
+                <option selected>Tipo de conta</option>
+                <option value="1">Administrador</option>
+                <option value="2">Docente</option>
+                <option value="3">Cientista de dados</option>
+            </select>
+    </div> <!-- Botao de submeter deve estar fora da caixa -->
+            <div id="submit-bt-div">
+                <input class="btn btn-primary" type="submit" value="Criar">
+            </div>
+        </form>
+</div>
+
+{% endblock %}

@@ -58,8 +58,8 @@ def account():
 @app.route("/change_pw", methods=['GET', 'POST'])
 def change_pw():
 	if 'loggedin' in session:
-		if request.method == 'POST' and 'new_pw' in request.form and 'confirm' in request.form:
-			if request.form['new_pw'] != request.form['confirm']:
+		if request.method == 'POST' and 'new_pw' in request.form and 'pw_confirm' in request.form:
+			if request.form['new_pw'] != request.form['pw_confirm']:
 				flash('Palavra-passe não coincide', 'error')
 				return render_template("change_pw.html", user_type=session['user_type'])
 			else:
@@ -79,9 +79,83 @@ def change_pw():
 		return render_template("account.html", user_type=session['user_type'])
 	return redirect(url_for('login'))
 
+# ============ MENU ADMIN ============
+@app.route("/admin")
+def admin():
+	if 'loggedin' in session:
+		return render_template("admin.html", user_type=session['user_type'])
+	return redirect(url_for('login'))
+
+@app.route("/deactivate_acc", methods=['GET', 'POST'])
+def deactivate_acc():
+	if 'loggedin' in session:
+		if session['user_type'] == 1:
+			if request.method == 'POST' and "email" in request.form:
+				email_list = request.form.getlist('email')
+				for email in email_list:
+					if mdb.deactivate_user(database_name=db_name, email=email):
+						continue
+					else:
+						flash('Erro ao desativar conta', 'error')
+				# get users list and render page
+				users_df = mdb.list_users(database_name=db_name)
+
+				# add checkbox column
+				users_df.insert(0, '', ['<input type="checkbox" name="email" value="{}">'.format(email) for email in users_df['E-mail']])
+
+				users_df = users_df.to_html(classes='table', index=False, escape=False)
+				flash('Conta(s) desativada(s) com sucesso', 'info')
+				return render_template("deactivate_acc.html", \
+								user_type=session['user_type'], \
+								users_df=users_df)
+								
+			elif request.method == 'GET':
+				# get users list and render page
+				users_df = mdb.list_users(database_name=db_name)
+
+				# add checkbox column
+				users_df.insert(0, '', ['<input type="checkbox" name="email" value="{}">'.format(email) for email in users_df['E-mail']])
+
+				users_df = users_df.to_html(classes='table', index=False, escape=False)
+
+				return render_template("deactivate_acc.html", \
+								user_type=session['user_type'], \
+								users_df=users_df)
+		
+		return redirect(url_for('index'))
+	return redirect(url_for('login'))
+
+@app.route("/create_user", methods=['GET', 'POST'])
+def create_user():
+	if 'loggedin' in session:
+		if session['user_type'] == 1:
+			if request.method == 'POST' and "email" in request.form and "fullname" in request.form and "num_id" and "type" in request.form:
+				email = request.form.get('email')
+				fullname = request.form.get('fullname')
+				type = int(request.form.get('type'))
+				try:
+					num_id = int(request.form.get('num_id'))
+				except ValueError:
+					flash('Número ID inválido', 'error')
+					return render_template("create_user.html", user_type=session['user_type'])
+
+				if mdb.create_user(database_name=db_name, email=email, full_name=fullname, num_id=num_id, type=type):
+					flash('Conta criada com sucesso', 'info')
+					return render_template("create_user.html", user_type=session['user_type'])
+				else:
+					flash('Erro ao criar conta', 'error')
+					return render_template("create_user.html", user_type=session['user_type'])
+								
+			elif request.method == 'GET':
+				return render_template("create_user.html", user_type=session['user_type'])
+		
+		return redirect(url_for('index'))
+	return redirect(url_for('login'))
+
 # ============ MAIN ============
 def main():
 	app.run()
 
 if __name__ == '__main__':
 	main()
+

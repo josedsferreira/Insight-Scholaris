@@ -546,15 +546,16 @@ def list_users(database_name):
         engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select all records from the users table
-        query = """SELECT 
-                user_id, 
-                full_name, 
-                email, 
-                num_id, 
-                type, 
-                is_active,
-                created_at
-                FROM users"""
+        query = """
+                SELECT 
+                full_name AS "Nome", 
+                email AS "E-mail", 
+                num_id AS "ID", 
+                type AS "Tipo", 
+                date_trunc('day', created_at) AS "Criado em"
+                FROM users
+                WHERE is_active = TRUE
+                """
 
         # Execute the query and return the result as a DataFrame
         user_list = pd.read_sql(query, engine)
@@ -653,6 +654,9 @@ def deactivate_user(database_name, email):
     Parameters:
     - database_name (str): The name of the database.
     - email (str): The email of the user to deactivate.
+
+    Returns:
+    - success (bool): True if the user was deactivated successfully, False otherwise.
     """
 
     try:
@@ -669,12 +673,17 @@ def deactivate_user(database_name, email):
                         is_active = FALSE
                         WHERE email = :email
                         """)
+            
+            params = {'email': email}
 
-            connection.execute(query, email=email)
+            connection.execute(query, params)
+            connection.commit()
+            return True #user deactivated successfully
 
     except SQLAlchemyError as e:
         print(f"An error occurred while deactivating the user {email} in {database_name}.")
         print(str(e))
+        return False #user not deactivated
 
 def user_is_valid(database_name, email):
     """

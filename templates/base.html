@@ -21,19 +21,17 @@
 <body class="main-menu-body">
     
     <nav class="sidebar close">
-        <header style="opacity: 0;"> <!-- Hidden: not needed -->
+        <header style="opacity: 0;"> <!-- Invisble, just for spacing -->
             <div class="image-text">
                 <span class="image">
                     <img src="/static/img/logo.png" alt="Insight Scholaris Logo">
                 </span>
 
                 <div class="text header-text">
-                    <span class="name">Insight Scholaris</span>
-                    <span class="role">Admin</span>
+                    <span class="name">I</span>
+                    <span class="role">R</span>
                 </div>
             </div>
-            <!-- Sidebar toggle button - not needed -->
-            <!-- <i class="bx bx-chevron-right toggle"></i> -->
         </header>
 
         <div class="menu-bar">
@@ -61,13 +59,13 @@
                     {% endif %}
                     <li class="nav-link">
                         <a href="#">
-                            <i class="bi bi-file-earmark-spreadsheet icon"></i>
+                            <i class="bi bi-table icon"></i>
                             <span class="text nav-text">Dados</span>
                         </a>
                     </li>
                     {% if user_type == 1 %}
                     <li class="nav-link">
-                        <a href="#">
+                        <a href="{{ url_for('admin') }}">
                             <i class="bi bi-people icon"></i>
                             <span class="text nav-text">Administração</span>
                         </a>
@@ -95,9 +93,6 @@
     {% endblock %}
     
 
-
-
-    
     <!-- JS -->
     <script src="/static/js/base.js"></script>
     <!-- Bootstrap JS -->

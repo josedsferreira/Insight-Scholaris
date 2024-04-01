@@ -232,4 +232,3 @@ def is_df_encoded(df):
                 return False
 
     return True
-    

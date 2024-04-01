@@ -2,7 +2,15 @@
 
 {% block body %}
 
-<h2 id="title">Alterar Palavra-Passe</h2>
+<div id="title">
+    <a class="btn btn-primary" id="back-button" href="{{ url_for('account') }}">
+        <i class="bi bi-chevron-left"></i>
+        <span class="text nav-text">Voltar</span>
+    </a>
+    <h2>
+        Alterar Palavra-Passe
+    </h2>
+</div>
 
 <div>
     <div id="form-box">
@@ -19,11 +27,11 @@
 
         <form action="{{url_for('change_pw')}}" method="post">
             <div class="form-floating mb-3">
-                <input type="password" class="form-control" name="new_pw" id="new_pw">
+                <input type="password" class="form-control" name="new_pw">
                 <label for="floatingInput">Nova palavra-passe</label>
             </div>
             <div class="form-floating">
-                <input type="password" class="form-control" name="confirm" id="password">
+                <input type="password" class="form-control" name="pw_confirm">
                 <label for="floatingPassword">Confirme a nova palavra-passe</label>
     </div>
         </div> <!-- Botao de submeter deve estar fora da caixa -->
