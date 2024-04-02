@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<h2 id="title">Prever</h2>
+
+<div id="options">
+    <a class="btn btn-primary option-button" href="{{ url_for('create_user') }}">
+        <span class="text nav-text">Fazer previsão</span>
+    </a>
+
+    <a class="btn btn-primary option-button" href="{{ url_for('deactivate_acc') }}">
+        <span class="text nav-text">Ver previsões anteriores</span>
+    </a>
+</div>
+
+{% endblock %}

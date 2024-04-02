@@ -38,6 +38,9 @@ def store_dataset(df, db_name, df_name, df_type):
     - db_name (str): The name of the database.
     - df_name (str): The name of the DataFrame.
     - df_type (str): The type of the DataFrame.
+
+    Returns:
+    - success (bool): True if the DataFrame was stored successfully, False otherwise.
     """
     try:
         # Create a connection to PostgreSQL database
@@ -50,9 +53,18 @@ def store_dataset(df, db_name, df_name, df_type):
 
         # Store the dataframe in the database
         with engine.connect() as connection:
+
             # Insert a record into the dataFrames table
-            query = text("INSERT INTO dataframes (df_name, df_type) VALUES (:df_name, :df_type) RETURNING df_id")
-            result = connection.execute(query, df_name=df_name, df_type=df_type)
+            query = text("""
+                         INSERT INTO dataframes (df_name, df_type) 
+                         VALUES (:df_name, :df_type) 
+                         RETURNING df_id
+                         """)
+
+            params = {'df_name': df_name, 'df_type': df_type}
+            
+            result = connection.execute(query, params)
+            connection.commit()
             df_id = result.fetchone()[0]
 
             # Add df_id column to the DataFrame
@@ -61,9 +73,11 @@ def store_dataset(df, db_name, df_name, df_type):
             # Store the DataFrame in the data table
             df.to_sql('data', engine, if_exists='append', index=False)
 
+            return True
     except SQLAlchemyError as e:
         print(f"An error occurred while storing the dataset {df_name} in {db_name}.")
         print(str(e))
+        return False
 
     """
     other possible arguments for .to_sql:
@@ -413,6 +427,9 @@ def retrieve_evaluations(database_name, model_id):
     except SQLAlchemyError as e:
         print(f"An error occurred while retrieving the model {model_id} eval history in {database_name}.")
         print(str(e))
+
+def store_parameters(database_name, model_id, parameters):
+    pass
 
 def retrieve_parameters(database_name, model_id):
     """

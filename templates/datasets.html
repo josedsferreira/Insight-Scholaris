@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<h2 id="title">Dados</h2>
+
+<div id="options">
+    <a class="btn btn-primary option-button" href="{{ url_for('import_ds') }}">
+        <span class="text nav-text">Importar novo dataset</span>
+    </a>
+
+    <a class="btn btn-primary option-button" href="#">
+        <span class="text nav-text">Selecionar dataset</span>
+    </a>
+</div>
+
+{% endblock %}

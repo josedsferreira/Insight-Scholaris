@@ -44,21 +44,21 @@
                         </a>
                     </li>
                     <li class="nav-link">
-                        <a href="#">
+                        <a href="{{ url_for('predict_menu') }}">
                             <i class="bi bi-eye icon"></i>
                             <span class="text nav-text">Prever</span>
                         </a>
                     </li>
                     {% if user_type == 1 or user_type == 3 %}
                     <li class="nav-link">
-                        <a href="#">
+                        <a href="{{ url_for('modeling_menu') }}">
                             <i class="bi bi-clipboard-data icon"></i>
                             <span class="text nav-text">Modelar</span>
                         </a>
                     </li>
                     {% endif %}
                     <li class="nav-link">
-                        <a href="#">
+                        <a href="{{ url_for('datasets') }}">
                             <i class="bi bi-table icon"></i>
                             <span class="text nav-text">Dados</span>
                         </a>

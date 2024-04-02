@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<h2 id="title">Modelar</h2>
+
+<div id="options">
+    <a class="btn btn-primary option-button" href="{{ url_for('create_user') }}">
+        <span class="text nav-text">Criar novo modelo</span>
+    </a>
+
+    <a class="btn btn-primary option-button" href="{{ url_for('deactivate_acc') }}">
+        <span class="text nav-text">Treinar com novos dados</span>
+    </a>
+
+    <a class="btn btn-primary option-button" href="{{ url_for('deactivate_acc') }}">
+        <span class="text nav-text">Informação detalhada do modelo</span>
+    </a>
+
+    <a class="btn btn-primary option-button" href="{{ url_for('deactivate_acc') }}">
+        <span class="text nav-text">Historico de modelos</span>
+    </a>
+</div>
+
+{% endblock %}
