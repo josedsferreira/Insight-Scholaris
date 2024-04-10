@@ -2,7 +2,7 @@
 CREATE TABLE dataframes (
     df_id SERIAL PRIMARY KEY,
     df_name VARCHAR(255),
-    df_type integer, /* 1- de treino, 2- por prever, 3- já previsto */
+    df_type integer, /* 1- para modelação, 2- para realizar previsao, 3- previsoes realizadas */
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -19,7 +19,8 @@ tipo 1 - de treino, usa todas as colunas
 tipo 2 - por prever, não usa coluna final_result
 tipo 3 - já previsto, usa todas as colunas (se calhar este tipo não é necessário)
 */
-create TABLE data (
+/* Versao anterior so com integers */
+/* create TABLE data (
     data_id SERIAL PRIMARY KEY,
     dataframe_id INTEGER REFERENCES dataframes(dataframe_id),
     code_module INTEGER,
@@ -34,6 +35,22 @@ create TABLE data (
     studied_credits INTEGER,
     disability INTEGER,
     final_result INTEGER
+); */
+create TABLE data (
+    data_id SERIAL PRIMARY KEY,
+    dataframe_id INTEGER REFERENCES dataframes(df_id),
+    code_module VARCHAR(255),
+    code_presentation VARCHAR(255),
+    id_student INTEGER,
+    gender VARCHAR(255),
+    region VARCHAR(255),
+    highest_education VARCHAR(255),
+    imd_band VARCHAR(255),
+    age_band VARCHAR(255),
+    num_of_prev_attempts INTEGER,
+    studied_credits INTEGER,
+    disability VARCHAR(255),
+    final_result VARCHAR(255)
 );
 
 /* O modelo será guardado no computador e na base de dados apenas se guarda o 
@@ -79,7 +96,8 @@ create table users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE administrators (
+/* Tabelas já não sao necessarias */
+/* CREATE TABLE administrators (
     admin_id SERIAL PRIMARY KEY REFERENCES users(user_id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -92,4 +110,4 @@ CREATE TABLE teachers (
 CREATE TABLE scientists (
     scientist_id SERIAL PRIMARY KEY REFERENCES users(user_id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+); */

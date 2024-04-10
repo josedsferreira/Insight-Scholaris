@@ -4,6 +4,9 @@
     --form-box-width: 40%;
     /* option box size */
     --option-box-width: 40%;
+    /*  table box size */
+    --table-box-width: 100%;
+    --table-box-height: 500px;
 
     /* ==== Colors ===== */
     --body-color: white;
@@ -23,12 +26,19 @@
     :root {
         --form-box-width: 300px;
         --option-box-width: 300px;
+        --table-box-width: 300px;
     }
 }
 @media screen and (min-width: 600px) {
     :root {
         --form-box-width: 400px;
         --option-box-width: 400px;
+        --table-box-width: 400px;
+    }
+}
+@media screen and (max-height: 670px) {
+    :root {
+        --table-box-height: 300px;
     }
 }
 
@@ -36,16 +46,16 @@
 #title {
     position: absolute;
     display: flex;
-    align-items: flex-start;
-    top: 10px;
-    left: 103px;
+    align-items: center;
+    justify-content: center;
+    top: 65px;
 }
-#title a {
+/* #title a {
     margin: 0;
-}
-#title h2 {
+} */
+/* #title h2 {
     margin: 0 0 0 10px;
-}
+} */
 .option-button {
     width: var(--option-box-width);
     margin-top: 10px !important;
@@ -61,6 +71,12 @@
 }
 #back-button:hover {
     color: var(--body-color);
+}
+.body-con {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Adjust this as needed */
 }
 
 /* ========== BASE TEMPLATE ========== */
@@ -216,7 +232,7 @@ body {
     overflow: hidden;
 }
 .logo-big {
-    width: 250px;
+    width: 300px;
     position: absolute;
     top: 10px;
     right: 10px;
@@ -285,6 +301,14 @@ body {
     background-color: var(--primary-color) !important;
     color: var(--body-color) !important;
 }
+.btn-check:focus+.btn-primary, .btn-primary:focus {
+    background-color: var(--primary-color) !important;
+    color: var(--body-color) !important;
+    border-color: var(--body-color) !important;
+}
+.dropdown-item:active {
+    background-color: var(--primary-color) !important;
+}
 
 /* ========== FORMS ========== */
 .login-body {
@@ -300,7 +324,7 @@ body {
 #form-box {
     width: var(--form-box-width);
     text-align: left;
-    background-color: lightgrey;
+    background-color: var(--bezzel-color);
     padding: 20px;
     border-radius: 10px;
 }
@@ -331,9 +355,56 @@ body {
 /* ========== TABLE ========== */
 #table-box {
     margin: 15px 0 15px 0;
-    height: 400px;
+    height: var(--table-box-height);
     overflow: auto;
+}
+#clickable-table-box {
+    width: var(--table-box-width);
+    /* height: var(--table-box-height); */
+    height: 400px;
+    text-align: left;
+    background-color: var(--bezzel-color);
+    padding: 20px;
+    border-radius: 10px;
 }
 tr {
     text-align: left !important;
+}
+#clickable-table-box tr{
+    background-color: var(--body-color);
+}
+thead, .clicable-table-header {
+    background-color: var(--bezzel-color);
+}
+.clicable-tr {
+    cursor: pointer;
+}
+.clicable-tr:hover {
+    background-color: var(--bezzel-color) !important;
+}
+.clicable-table-header {
+    cursor: auto;
+}
+#inner-table-box {
+    margin-bottom: 0 !important;
+    /* height: var(--table-box-height - 168px); */
+    height: 360px;
+    overflow: auto;
+}
+.table {
+    margin-bottom: 0;
+}
+
+/* ====== New Base (Navbar) ====== */
+
+#logo {
+    max-height: 30px;
+}
+
+.navbar-light .navbar-nav .nav-link {
+    color: black;
+}
+
+.bg-light {
+    background-color: var(--bezzel-color) !important;
 }

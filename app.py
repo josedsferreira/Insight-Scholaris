@@ -5,6 +5,11 @@ import pandas as pd
 from dotenv import load_dotenv
 import os
 
+# ============ dotenv ============
+load_dotenv() 
+db_name = os.getenv('DB_NAME')
+
+# ============ FLASK ============
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 app.debug = False # se true mudanças nos ficheiros automtaticamente recarregam servidor
@@ -29,16 +34,11 @@ def load_user(email):
 	user_type, default_pw = mdb.user_info(database_name=db_name, email=email)
 	return User(email, user_type, default_pw)
 
-# ============ dotenv ============
-load_dotenv()
-db_name = os.getenv('DB_NAME')
-
 # ============ ROUTES ============
 @app.route('/')
 @login_required
 def index():
 	return render_template('index.html', user_type=current_user.user_type, default_pw=current_user.default_pw)
-
 
 # ============ LOGIN / LOGOUNT ============
 @app.route('/login', methods=['GET', 'POST'])
@@ -56,12 +56,6 @@ def login():
 			user = load_user(email)
 			login_user(user)
 			return redirect(url_for('index'))
-			"""
-			#metodo anterior
-			session['loggedin'] = True
-			session['email'] = email
-			session['user_type'], session['default_pw'] = mdb.user_info(database_name=db_name, email=email)
-			"""
 			
 		else:
 			flash('Palavra-passe incorreta', 'error')
@@ -84,10 +78,10 @@ def logout():
 	return redirect(url_for('login'))
 
 # ============ MENU CONTA ============
-@app.route("/account")
+""" @app.route("/account")
 @login_required
 def account():
-	return render_template("account.html", user_type=current_user.user_type)
+	return render_template("account.html", user_type=current_user.user_type) """
 
 @app.route("/change_pw", methods=['GET', 'POST'])
 @login_required
@@ -116,10 +110,10 @@ def change_pw():
 	return render_template("account.html", user_type=current_user.user_type)
 
 # ============ MENU ADMIN ============
-@app.route("/admin")
+""" @app.route("/admin")
 @login_required
 def admin():
-	return render_template("admin.html", user_type=current_user.user_type)
+	return render_template("admin.html", user_type=current_user.user_type) """
 
 @app.route("/deactivate_acc", methods=['GET', 'POST'])
 @login_required
@@ -190,24 +184,14 @@ def create_user():
 		return redirect(url_for('index'))
 
 # ============ MENU DADOS ============
-@app.route("/datasets")
+""" @app.route("/datasets")
 @login_required
 def datasets():
-	return render_template("datasets.html", user_type=current_user.user_type)
+	return render_template("datasets.html", user_type=current_user.user_type) """
 
 @app.route("/import_ds", methods=['GET', 'POST'])
 @login_required
 def import_ds():
-
-	""" #DEBUGGING
-	if request.method == 'POST':
-		ds_name = request.form.get('ds_name')
-		ds_file = request.files['ds_file']
-		ds_type = request.form.get('ds_type')
-		print(ds_type)
-		print(ds_file.filename)
-		print(ds_name) """
-	
 	if request.method == 'POST' and 'ds_file' in request.files and 'ds_name' in request.form and 'ds_type' in request.form:
 		ds_name = request.form.get('ds_name')
 		ds_file = request.files['ds_file']
@@ -236,17 +220,36 @@ def import_ds():
 	elif request.method == 'GET':
 		return render_template("import_ds.html", user_type=current_user.user_type)
 	
+@app.route("/select_ds", methods=['GET', 'POST'])
+@login_required
+def select_ds(df_id=None):
+	if request.method == 'POST' and df_id is not None:
+		return redirect(url_for('#'))
+	elif request.method == 'GET':
+		list_df = mdb.list_datasets(database_name=db_name)
+		list_df = list_df.to_dict(orient='records')
+		return render_template("select_ds.html", user_type=current_user.user_type, list_df=list_df)
+	
+@app.route("/ds_menu", methods=['GET', 'POST'])
+@login_required
+def ds_menu(df_id=None):
+	if request.method == 'POST' and 'ds_id' in request.form:
+		ds_id = request.form.get('ds_id')
+		return redirect(url_for('ds_menu', df_id=ds_id))
+	elif request.method == 'GET':
+		return render_template("ds_menu.html", user_type=current_user.user_type)
+
 # ============ MENU PREVER ============
-@app.route("/predict_menu")
+""" @app.route("/predict_menu")
 @login_required
 def predict_menu():
-	return render_template("predict_menu.html", user_type=current_user.user_type)
+	return render_template("predict_menu.html", user_type=current_user.user_type) """
 
 # ============ MENU MODELAR ============
-@app.route("/modeling_menu")
+""" @app.route("/modeling_menu")
 @login_required
 def modeling_menu():
-	return render_template("modeling_menu.html", user_type=current_user.user_type)
+	return render_template("modeling_menu.html", user_type=current_user.user_type) """
 
 # ============ MAIN ============
 def main():

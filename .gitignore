@@ -12,3 +12,4 @@ Experiencias/jsonfier.py
 .streamlit/secrets.toml
 Experiencias/exp_streamlit/credentials.yaml
 query.py
+stuff.py

@@ -2,7 +2,7 @@
 
 {% block body %}
 
-<div id="title">
+<!-- <div id="title">
     <a class="btn btn-primary" id="back-button" href="{{ url_for('datasets') }}">
         <i class="bi bi-chevron-left"></i>
         <span class="text nav-text">Voltar</span>
@@ -10,40 +10,51 @@
     <h2>
         Importar Dataset
     </h2>
-</div>
+</div> -->
 
-<div>
-    <div id="form-box">
+<div class="container">
+    <div class="body-con">
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <ul class="flashes">
-                {% for category, message in messages %}
-                    <li id="{{ category }}">{{ message }}</li>
-                {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
+        <div>
 
-        <form action="{{url_for('import_ds')}}" method="post" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label for="formFile" class="form-label">Carregar ficheiro</label>
-                <input class="form-control" type="file" name="ds_file">
+            <div id="form-title">
+                <h5>Importar dataset</h5>
             </div>
-            <div class="form-floating mb-3">
-                <input type="text" class="form-control" name="ds_name">
-                <label for="floatingInput">Nome do dataset</label>
-            </div>
-            <select class="form-select" aria-label="Propósito" name="ds_type">
-                <option selected>Propósito</option>
-                <option value="1">Para treinar</option>
-                <option value="2">Para prever</option>
-            </select>
-</div> <!-- Botao de submeter deve estar fora da caixa -->
-            <div id="submit-bt-div">
-                <input class="btn btn-primary" type="submit" value="Importar">
-            </div>
-        </form>
+
+            <div id="form-box">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class="flashes">
+                        {% for category, message in messages %}
+                            <li id="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+
+                <form action="{{url_for('import_ds')}}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="formFile" class="form-label">Carregar ficheiro</label>
+                        <input class="form-control" type="file" name="ds_file" placeholder="Carregar Ficheiro">
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" name="ds_name" placeholder="Nome do dataset">
+                        <label for="floatingInput">Nome do dataset</label>
+                    </div>
+                    <select class="form-select" aria-label="Propósito" name="ds_type" placeholder="Propósito">
+                        <option selected>Propósito</option>
+                        <option value="1">Para treinar</option>
+                        <option value="2">Para prever</option>
+                    </select>
+        </div> <!-- Botao de submeter deve estar fora da caixa -->
+                    <div id="submit-bt-div">
+                        <input class="btn btn-primary" type="submit" value="Importar">
+                    </div>
+                </form>
+        </div>
+
+    </div>
 </div>
 
 {% endblock %}

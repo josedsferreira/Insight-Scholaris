@@ -163,8 +163,10 @@ def decoder(df):
     # Replace values in each column based on the mappings
     for column, mapping in mappings.items():
         if column in df.columns:
+            """ 
             # Convert keys in mapping to int, because JSON keys are always strings
-            mapping = {int(k): v for k, v in mapping.items()}
+            mapping = {int(k): v for k, v in mapping.items()} 
+            """
             df[column] = df[column].map(mapping)
 
     return df
@@ -188,8 +190,11 @@ def encoder(df):
     # Replace values in each column based on the mappings
     for column, mapping in mappings.items():
         if column in df.columns:
+            """ 
+            # Não converter talvez resolva o problema dos numeros ordinais
             # Convert keys in mapping to int, because JSON keys are always strings
-            mapping = {int(k): v for k, v in mapping.items()}
+            mapping = {int(k): v for k, v in mapping.items()} 
+            """
             df[column] = df[column].map(mapping)
 
     return df
@@ -232,3 +237,9 @@ def is_df_encoded(df):
                 return False
 
     return True
+
+def create_encoder(df):
+    pass
+
+def update_encoder(df):
+    pass

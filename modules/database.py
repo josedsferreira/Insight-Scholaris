@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import os
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-from modules import cleaning
+from modules import data
 import bcrypt
 
 def connection_link(database_name):
@@ -47,9 +47,9 @@ def store_dataset(df, db_name, df_name, df_type):
         engine = create_engine(connection_link(db_name))
         
         #encode the dataframe if it is not encoded
-        if not cleaning.is_df_encoded(df):
+        if not data.is_df_encoded(df):
             print("The DataFrame is not encoded. Encoding it now...")
-            df = cleaning.encoder(df)
+            df = data.encoder(df)
 
         # Store the dataframe in the database
         with engine.connect() as connection:
@@ -68,7 +68,7 @@ def store_dataset(df, db_name, df_name, df_type):
             df_id = result.fetchone()[0]
 
             # Add df_id column to the DataFrame
-            df['df_id'] = df_id
+            df['dataframe_id'] = df_id
 
             # Store the DataFrame in the data table
             df.to_sql('data', engine, if_exists='append', index=False)
@@ -136,7 +136,19 @@ def list_datasets(database_name):
         engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select all records from the dataFrames table
-        query = "SELECT * FROM dataFrames"
+        query = """ 
+                SELECT 
+                df_id AS "ID",
+                df_name AS "Nome",
+                CASE
+                    WHEN df_type = 1 THEN 'De treino'
+                    WHEN df_type = 2 THEN 'Para prever'
+                    WHEN df_type = 3 THEN 'Previsão'
+                END AS "Tipo",
+                date_trunc('day', created_at) AS "Criado em"
+                FROM dataFrames 
+                ORDER BY "Criado em" DESC
+                """
 
         # Execute the query and return the result as a DataFrame
         dataset_list = pd.read_sql(query, engine)
@@ -568,7 +580,11 @@ def list_users(database_name):
                 full_name AS "Nome", 
                 email AS "E-mail", 
                 num_id AS "ID", 
-                type AS "Tipo", 
+                CASE
+                    WHEN type = 1 THEN 'Administrador'
+                    WHEN type = 2 THEN 'Docente'
+                    WHEN type = 3 THEN 'Cientista de Dados'
+                END AS "Tipo",
                 date_trunc('day', created_at) AS "Criado em"
                 FROM users
                 WHERE is_active = TRUE

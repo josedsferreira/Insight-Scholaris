@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<!-- <div id="title">
+    <a class="btn btn-primary" id="back-button" href="{{ url_for('datasets') }}">
+        <i class="bi bi-chevron-left"></i>
+        <span class="text nav-text">Voltar</span>
+    </a>
+    <h2>
+        Selecionar Dataset
+    </h2>
+</div> -->
+
+<div class="container">
+    <div class="body-con">
+
+        <div>
+        <div id="form-title">
+            <h5>Selecione um dataset</h5>
+        </div>
+
+        <div id="clickable-table-box">
+
+            
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="flashes">
+                    {% for category, message in messages %}
+                        <li id="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+
+            <div id="inner-table-box">
+                <table class="table">
+                    <tr class="clicable-table-header">
+                        <th>Nome</th>
+                        <th>Tipo</th>
+                        <th>Criado em</th>
+                    </tr>
+                    {% for line in list_df %}
+                        <tr data-href="{{ url_for('ds_menu', parameter=line['ID']) }}" class="clicable-tr">
+                            <td>{{ line['Nome'] }}</td>
+                            <td>{{ line['Tipo'] }}</td>
+                            <td>{{ line['Criado em'].strftime('%d-%m-%Y') }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        </div>
+
+    </div>
+</div>
+
+
+{% endblock %}

@@ -2,7 +2,7 @@
 
 {% block body %}
 
-<div id="title">
+<!-- <div id="title">
     <a class="btn btn-primary" id="back-button" href="{{ url_for('admin') }}">
         <i class="bi bi-chevron-left"></i>
         <span class="text nav-text">Voltar</span>
@@ -10,33 +10,40 @@
     <h2>
         Desativar conta
     </h2>
-</div>
+</div> -->
 
-<div style="margin-left: 0; margin-right: 0;">
+<div class="container">
+    <div class="body-con">
 
-    <div id="form-title">
-        <h5>Selecione as contas que deseja desativar</h5>
-    </div>
+        <div style="margin-left: 0; margin-right: 0;">
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <ul class="flashes">
-            {% for category, message in messages %}
-                <li id="{{ category }}">{{ message }}</li>
-            {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-
-    <div id="table-box">
-
-        <form action="{{url_for('deactivate_acc')}}" method="post">
-            {{ users_df|safe }}
-    </div>
-            <div id="submit-bt-div">
-                <input class="btn btn-primary" type="submit" value="Desativar">
+            <div id="form-title">
+                <h5>Selecione as contas que deseja desativar</h5>
             </div>
-        </form>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="flashes">
+                    {% for category, message in messages %}
+                        <li id="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+
+            <div id="table-box">
+
+                <form action="{{url_for('deactivate_acc')}}" method="post">
+                    {{ users_df|safe }}
+            </div>
+                    <div id="submit-bt-div">
+                        <input class="btn btn-primary" type="submit" value="Desativar">
+                    </div>
+                </form>
+        </div>
+
+    </div>
+
 </div>
 
 
