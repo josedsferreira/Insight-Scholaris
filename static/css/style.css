@@ -12,6 +12,7 @@
     --body-color: white;
     --sidebar-color: lightgrey;
     --bezzel-color: lightgrey;
+    --lightbezzel-color: rgb(235, 235, 235);
     --primary-color: grey;
     --text-color: black;
 
@@ -76,7 +77,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh; /* Adjust this as needed */
+    height: 100vh;
+}
+#ds-info {
+    padding-top: 10px;
 }
 
 /* ========== BASE TEMPLATE ========== */
@@ -92,7 +96,7 @@ body {
     background-color: var(--body-color);
 }
 /* ========== Sidebar ========== */
-.sidebar .text{
+/* .sidebar .text{
     font-size: 16px;
     font-weight: 500;
     color: var(--text-color);
@@ -218,7 +222,7 @@ body {
 .sidebar .bottom-content li{
     padding-top: 10px;
     padding-bottom: 10px;
-}
+} */
 
 /* ========== MAIN MENU ========== */
 
@@ -310,6 +314,7 @@ body {
     background-color: var(--primary-color) !important;
 }
 
+
 /* ========== FORMS ========== */
 .login-body {
     display: flex;
@@ -373,16 +378,16 @@ tr {
 #clickable-table-box tr{
     background-color: var(--body-color);
 }
-thead, .clicable-table-header {
+thead, .clickable-table-header {
     background-color: var(--bezzel-color);
 }
-.clicable-tr {
+.clickable-tr {
     cursor: pointer;
 }
-.clicable-tr:hover {
+.clickable-tr:hover {
     background-color: var(--bezzel-color) !important;
 }
-.clicable-table-header {
+.clickable-table-header {
     cursor: auto;
 }
 #inner-table-box {
@@ -393,6 +398,11 @@ thead, .clicable-table-header {
 }
 .table {
     margin-bottom: 0;
+}
+#ds-head {
+    width: 100%;
+    height: 400px;
+    overflow: auto;
 }
 
 /* ====== New Base (Navbar) ====== */
@@ -407,4 +417,16 @@ thead, .clicable-table-header {
 
 .bg-light {
     background-color: var(--bezzel-color) !important;
+}
+
+/* ====== Secondary NavBar ====== */
+
+.bg-sec-nav {
+    background-color: rgb(235, 235, 235) !important;
+}
+#dataset-title {
+    width: 176px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

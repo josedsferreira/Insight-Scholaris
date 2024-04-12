@@ -85,6 +85,48 @@ def store_dataset(df, db_name, df_name, df_type):
     dtype: Dictionary with the type of each column, if not set, it will be inferred
     """
 
+def retrieve_dataset_info(database_name, df_id):
+    """
+    retrieves a dataset from a PostgreSQL database.
+
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - df_id (int): The ID of the dataset to retrieve.
+
+    Returns:
+    - df_info (pandas.DataFrame): The retrieved dataset as a pandas DataFrame.
+
+    Raises:
+    - SQLAlchemyError: If an error occurs while retrieving the dataset.
+    """
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+        with engine.connect() as connection:
+
+            query = text("""
+                    SELECT 
+                    df_id AS "ID",
+                    df_name AS "Nome",
+                    CASE
+                        WHEN df_type = 1 THEN 'De treino'
+                        WHEN df_type = 2 THEN 'Para prever'
+                        WHEN df_type = 3 THEN 'Previsão'
+                    END AS "Tipo",
+                    date_trunc('day', created_at) AS "Criado em"
+                    FROM dataFrames 
+                    WHERE df_id = :id
+                    ORDER BY "Criado em" DESC
+                    """)
+
+            result = connection.execute(query, {'id': df_id})
+            df_info = result.fetchone()
+            return df_info
+    
+    except SQLAlchemyError as e:
+        print(f"An error occurred while retrieving the dataset {df_id} from dataFrames table in {database_name}.")
+        print(str(e))
+
 def retrieve_dataset(database_name, df_id):
     """
     retrieves a dataset from a PostgreSQL database.
@@ -113,6 +155,73 @@ def retrieve_dataset(database_name, df_id):
         # retrieve the dataset
         df = pd.read_sql(query, engine)
         return df
+    
+    except SQLAlchemyError as e:
+        print(f"An error occurred while retrieving the dataset {df_id} from data table in {database_name}.")
+        print(str(e))
+
+def retireve_head(database_name, df_id, n_rows):
+    """
+    retrieves the first n rows of a dataset from a PostgreSQL database.
+
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - df_id (int): The ID of the dataset to retrieve.
+    - n_rows (int): The number of rows to retrieve.
+
+    Returns:
+    - df (pandas.DataFrame): The retrieved dataset as a pandas DataFrame.
+
+    Raises:
+    - SQLAlchemyError: If an error occurs while retrieving the dataset.
+    """
+    try:
+        engine = create_engine(connection_link(database_name))
+
+        df_type = retrieve_dataset_info(database_name, df_id)[2]
+
+        # Define the SQL query to select rows from the data table
+        if df_type == 'Para prever':
+            query = text("""
+                     SELECT
+                     code_module,
+                     code_presentation,
+                     gender,
+                     region,
+                     highest_education,
+                     imd_band,
+                     age_band,
+                     num_of_prev_attempts,
+                     studied_credits,
+                     disability
+                     FROM data
+                     WHERE dataframe_id = :df_id
+                     LIMIT :n_rows
+                     """)
+        else:
+            query = text("""
+                        SELECT
+                        code_module,
+                        code_presentation,
+                        gender,
+                        region,
+                        highest_education,
+                        imd_band,
+                        age_band,
+                        num_of_prev_attempts,
+                        studied_credits,
+                        disability,
+                        final_result
+                        FROM data
+                        WHERE dataframe_id = :df_id
+                        LIMIT :n_rows
+                        """)
+
+        params = {'df_id': df_id, 'n_rows': n_rows}
+        
+        head = pd.read_sql(query, engine, params=params)
+        head = data.decoder(head)
+        return head
     
     except SQLAlchemyError as e:
         print(f"An error occurred while retrieving the dataset {df_id} from data table in {database_name}.")
@@ -852,3 +961,74 @@ def open_dataframe_from_file(path):
         print(f"File not found: {path}")
     except Exception as e:
         print(f"An error occurred while opening the file: {str(e)}")
+
+def ready_export(database_name, df_id):
+    """
+    Prepare a dataset for export as a csv file that is saved to the static/downloads folder
+    as download.csv
+
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - df_id (int): The ID of the dataset to export.
+
+    Returns:
+    - success (bool): True if the dataset was readied successfully, False otherwise.
+    """
+    try:
+        engine = create_engine(connection_link(database_name))
+
+        df_info = retrieve_dataset_info(database_name, df_id)
+        df_type = df_info[2]
+
+        # Define the SQL query to select rows from the data table
+        if df_type == 'Para prever':
+            query = text("""
+                     SELECT
+                     code_module,
+                     code_presentation,
+                     gender,
+                     region,
+                     highest_education,
+                     imd_band,
+                     age_band,
+                     num_of_prev_attempts,
+                     studied_credits,
+                     disability
+                     FROM data
+                     WHERE dataframe_id = :df_id
+                     LIMIT :n_rows
+                     """)
+        else:
+            query = text("""
+                        SELECT
+                        code_module,
+                        code_presentation,
+                        gender,
+                        region,
+                        highest_education,
+                        imd_band,
+                        age_band,
+                        num_of_prev_attempts,
+                        studied_credits,
+                        disability,
+                        final_result
+                        FROM data
+                        WHERE dataframe_id = :df_id
+                        """)
+
+        params = {'df_id': df_id}
+        
+        df = pd.read_sql(query, engine, params=params)
+
+        # Decode the DataFrame
+        df = data.decoder(df)
+
+        # Export the DataFrame to a CSV file
+        df.to_csv("static/downloads/data.csv", index=False)
+
+        return True
+
+    except SQLAlchemyError as e:
+        print(f"An error occurred while exporting the dataset {df_id} from data table in {database_name}.")
+        print(str(e))
+        return False

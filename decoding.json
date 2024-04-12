@@ -1,1 +1,11 @@
-{"gender": {"1": "M", "2": "F", "3": "Other", "0": "Unknown"}, "disability": {"1": "N", "2": "Y", "0": "Unknown"}, "final_result": {"1": "Distinction", "2": "Fail", "0": "Unknown"}, "age": {"1": "0-35", "2": "35-55", "3": "55<=", "0": "Unknown"}, "highest_education": {"1": "No Formal quals", "2": "Lower Than A Level", "3": "A Level or Equivalent", "4": "HE Qualification", "5": "Post Graduate Qualification", "0": "Unknown"}, "imd_band": {"1": "0-10%", "2": "10-20", "3": "20-30%", "4": "30-40%", "5": "40-50%", "6": "50-60%", "7": "60-70%", "8": "70-80%", "9": "80-90%", "10": "90-100%", "0": "Unknown"}, "code_presentation": {"1": "2013B", "2": "2013J", "3": "2014B", "4": "2014J", "0": "Unknown"}, "code_module": {"1": "AAA", "2": "BBB", "3": "CCC", "4": "DDD", "5": "EEE", "6": "FFF", "7": "GGG", "0": "Unknown"}, "region": {"1": "Scotland", "2": "East Anglian Region", "3": "London Region", "4": "South Region", "15": "North Western Region", "6": "West Midlands Region", "7": "South West Region", "8": "East Midlands Region", "9": "Wales", "10": "Yorkshire Region", "11": "North Region", "12": "Ireland", "13": "South East Region", "14": "Central Region", "0": "Unknown"}}
+{
+    "gender": {"1": "M", "2": "F", "3": "Other", "0": "Unknown"}, 
+    "disability": {"1": "N", "2": "Y", "0": "Unknown"}, 
+    "final_result": {"1": "Pass", "2": "Fail", "0": "Unknown"}, 
+    "age": {"1": "0-35", "2": "35-55", "3": "55<=", "0": "Unknown"}, 
+    "highest_education": {"1": "No Formal quals", "2": "Lower Than A Level", "3": "A Level or Equivalent", "4": "HE Qualification", "5": "Post Graduate Qualification", "0": "Unknown"}, 
+    "imd_band": {"1": "0-10%", "2": "10-20", "3": "20-30%", "4": "30-40%", "5": "40-50%", "6": "50-60%", "7": "60-70%", "8": "70-80%", "9": "80-90%", "10": "90-100%", "0": "Unknown"}, 
+    "code_presentation": {"1": "2013B", "2": "2013J", "3": "2014B", "4": "2014J", "0": "Unknown"}, 
+    "code_module": {"1": "AAA", "2": "BBB", "3": "CCC", "4": "DDD", "5": "EEE", "6": "FFF", "7": "GGG", "0": "Unknown"}, 
+    "region": {"1": "Scotland", "2": "East Anglian Region", "3": "London Region", "4": "South Region", "15": "North Western Region", "6": "West Midlands Region", "7": "South West Region", "8": "East Midlands Region", "9": "Wales", "10": "Yorkshire Region", "11": "North Region", "12": "Ireland", "13": "South East Region", "14": "Central Region", "0": "Unknown"}
+}

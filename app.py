@@ -1,4 +1,4 @@
-from flask import Flask, flash, render_template, request, redirect, url_for, session
+from flask import Flask, flash, render_template, request, redirect, url_for, session, send_file
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from modules import database as mdb
 import pandas as pd
@@ -62,8 +62,8 @@ def login():
 			return redirect(url_for('login'))
 	elif request.method == 'POST':
 		flash('Preencha todos os campos antes de submeter', 'error')
-		return render_template('login.html')
-	return render_template('login.html')
+		return render_template('account/login.html')
+	return render_template('account/login.html')
 
 @app.route('/logout')
 def logout():
@@ -89,7 +89,7 @@ def change_pw():
 	if request.method == 'POST' and 'new_pw' in request.form and 'pw_confirm' in request.form:
 		if request.form['new_pw'] != request.form['pw_confirm']:
 			flash('Palavra-passe não coincide', 'error')
-			return render_template("change_pw.html", user_type=current_user.user_type)
+			return render_template("account/change_pw.html", user_type=current_user.user_type)
 		else:
 			password = request.form['new_pw']
 			email = session['email']
@@ -97,17 +97,17 @@ def change_pw():
 				# change sucessful
 				current_user.default_pw = False
 				flash('Palavra-passe alterada com sucesso', 'info')
-				return render_template("change_pw.html", user_type=current_user.user_type)
+				return render_template("account/change_pw.html", user_type=current_user.user_type)
 			else:
 				# change failed
 				flash('Erro ao alterar palavra-passe', 'error')
-				return render_template("change_pw.html", user_type=current_user.user_type)
+				return render_template("account/change_pw.html", user_type=current_user.user_type)
 	elif request.method == 'POST':
 		flash('Preencha todos os campos antes de submeter', 'error')
-		return render_template("change_pw.html", user_type=current_user.user_type)
+		return render_template("account/change_pw.html", user_type=current_user.user_type)
 	elif request.method == 'GET':
-		return render_template("change_pw.html", user_type=current_user.user_type)
-	return render_template("account.html", user_type=current_user.user_type)
+		return render_template("account/change_pw.html", user_type=current_user.user_type)
+	return render_template("account/account.html", user_type=current_user.user_type)
 
 # ============ MENU ADMIN ============
 """ @app.route("/admin")
@@ -134,12 +134,12 @@ def deactivate_acc():
 
 			users_df = users_df.to_html(classes='table', index=False, escape=False)
 			flash('Conta(s) desativada(s) com sucesso', 'info')
-			return render_template("deactivate_acc.html", \
+			return render_template("admin/deactivate_acc.html", \
 								user_type=current_user.user_type, \
 								users_df=users_df)
 		elif request.method == 'POST':
 			flash('Selecione pelo menos uma conta para desativar', 'error')
-			return render_template("deactivate_acc.html", user_type=current_user.user_type)						
+			return render_template("admin/deactivate_acc.html", user_type=current_user.user_type)						
 		elif request.method == 'GET':
 			# get users list and render page
 			users_df = mdb.list_users(database_name=db_name)
@@ -149,11 +149,10 @@ def deactivate_acc():
 
 			users_df = users_df.to_html(classes='table', index=False, escape=False)
 
-			return render_template("deactivate_acc.html", \
+			return render_template("admin/deactivate_acc.html", \
 								user_type=current_user.user_type, \
 								users_df=users_df)
 	return redirect(url_for('index'))
-
 
 @app.route("/create_user", methods=['GET', 'POST'])
 @login_required
@@ -167,21 +166,21 @@ def create_user():
 				num_id = int(request.form.get('num_id'))
 			except ValueError:
 				flash('Número ID inválido', 'error')
-				return render_template("create_user.html", user_type=current_user.user_type)
+				return render_template("admin/create_user.html", user_type=current_user.user_type)
 
 			if mdb.create_user(database_name=db_name, email=email, full_name=fullname, num_id=num_id, type=type):
 				flash('Conta criada com sucesso', 'info')
-				return render_template("create_user.html", user_type=current_user.user_type)
+				return render_template("admin/create_user.html", user_type=current_user.user_type)
 			else:
 				flash('Erro ao criar conta', 'error')
-				return render_template("create_user.html", user_type=current_user.user_type)
+				return render_template("admin/create_user.html", user_type=current_user.user_type)
 		elif request.method == 'POST':
 			flash('Preencha todos os campos antes de submeter', 'error')
-			return render_template("create_user.html", user_type=current_user.user_type)					
+			return render_template("admin/create_user.html", user_type=current_user.user_type)					
 		elif request.method == 'GET':
-			return render_template("create_user.html", user_type=current_user.user_type)
+			return render_template("admin/create_user.html", user_type=current_user.user_type)
 		
-		return redirect(url_for('index'))
+	return redirect(url_for('index'))
 
 # ============ MENU DADOS ============
 """ @app.route("/datasets")
@@ -203,41 +202,63 @@ def import_ds():
 				df = pd.read_excel(ds_file)
 			else:
 				flash('Formato de ficheiro não suportado', 'error')
-				return render_template("import_ds.html", user_type=current_user.user_type)
+				return render_template("datasets/import_ds.html", user_type=current_user.user_type)
 		except Exception as e:
 			print(e)
 			flash('Erro ao carregar ficheiro', 'error')
-			return render_template("import_ds.html", user_type=current_user.user_type)
+			return render_template("datasets/import_ds.html", user_type=current_user.user_type)
 		if mdb.store_dataset(db_name=db_name, df_name=ds_name, df=df, df_type=ds_type):
 			flash('Ficheiro carregado com sucesso', 'info')
-			return render_template("import_ds.html", user_type=current_user.user_type)
+			return render_template("datasets/import_ds.html", user_type=current_user.user_type)
 		else:
 			flash('Erro ao carregar ficheiro', 'error')
-			return render_template("import_ds.html", user_type=current_user.user_type)
+			return render_template("datasets/import_ds.html", user_type=current_user.user_type)
 	elif request.method == 'POST':
 		flash('Preencha todos os campos antes de submeter', 'error')
-		return render_template("import_ds.html", user_type=current_user.user_type)
+		return render_template("datasets/import_ds.html", user_type=current_user.user_type)
 	elif request.method == 'GET':
-		return render_template("import_ds.html", user_type=current_user.user_type)
-	
-@app.route("/select_ds", methods=['GET', 'POST'])
+		return render_template("datasets/import_ds.html", user_type=current_user.user_type)
+
+@app.route("/select_ds", methods=['GET'])
 @login_required
-def select_ds(df_id=None):
-	if request.method == 'POST' and df_id is not None:
-		return redirect(url_for('#'))
-	elif request.method == 'GET':
-		list_df = mdb.list_datasets(database_name=db_name)
-		list_df = list_df.to_dict(orient='records')
-		return render_template("select_ds.html", user_type=current_user.user_type, list_df=list_df)
+def select_ds():
+	list_df = mdb.list_datasets(database_name=db_name)
+	list_df = list_df.to_dict(orient='records')
+	return render_template("datasets/select_ds.html", user_type=current_user.user_type, list_df=list_df)
 	
 @app.route("/ds_menu", methods=['GET', 'POST'])
 @login_required
-def ds_menu(df_id=None):
-	if request.method == 'POST' and 'ds_id' in request.form:
-		ds_id = request.form.get('ds_id')
-		return redirect(url_for('ds_menu', df_id=ds_id))
+def ds_menu():
+	if request.method == 'POST' and 'id' in request.form:
+		ds_id = request.form.get('id')
+		if ds_id == 'None':
+			flash('Selecione um dataset', 'error')
+			return render_template("datasets/select_ds.html", user_type=current_user.user_type)
+		ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=ds_id)
+		ds_head = mdb.retireve_head(database_name=db_name, df_id=ds_id, n_rows=5)
+		ds_head = ds_head.to_html(classes='table')
+		return render_template("datasets/ds_menu.html", \
+						 user_type=current_user.user_type, \
+							ds_info=ds_info, \
+								ds_head=ds_head)
+	elif request.method == 'POST' and 'ds_id' not in request.form:
+		flash('Ocorreu um erro', 'error')
+		return redirect(url_for('select_ds'))
 	elif request.method == 'GET':
-		return render_template("ds_menu.html", user_type=current_user.user_type)
+		return render_template("datasets/ds_menu.html", user_type=current_user.user_type)
+
+@app.route("/export_ds", methods=['POST'])
+@login_required
+def export_ds():
+	if "ds_id" in request.form:
+		ds_id = request.form.get("ds_id")
+		if mdb.ready_export(database_name=db_name, df_id=ds_id):
+			
+			ds_name = mdb.retrieve_dataset_info(database_name=db_name, df_id=ds_id)[1]
+			return send_file('static/downloads/data.csv', as_attachment=True, download_name=f'{ds_name}.csv')
+		
+	flash('Ocorreu um erro', 'error')
+	redirect(url_for('select_ds'))
 
 # ============ MENU PREVER ============
 """ @app.route("/predict_menu")

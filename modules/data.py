@@ -92,7 +92,7 @@ def nans_to_unknown(df, column_list=column_names):
     - df (pandas.DataFrame): The DataFrame with missing values filled with the string 'Unknown'.
     """
     for column_name in column_list:
-        df[column_name].fillna(0, inplace=True)
+        df[column_name].fillna("0", inplace=True)
     return df
 
 def remove_columns(df, column_list=column_names):
@@ -186,6 +186,10 @@ def encoder(df):
     with open('encoding.json', 'r') as f:
         # Load the JSON file into a dictionary
         mappings = json.load(f)
+
+    # Replace NaN values with 'Unknown'
+    for column_name in column_names:
+        df[column_name].fillna("unknown", inplace=True)
 
     # Replace values in each column based on the mappings
     for column, mapping in mappings.items():

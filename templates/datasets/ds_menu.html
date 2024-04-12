@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<nav class="navbar navbar-expand-lg navbar-light bg-sec-nav">
+    <div class="container-fluid">
+
+        <a class="navbar-brand" id="dataset-title" href="#">Dataset</a>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                <li class="nav-item">
+                    <form method="post" action="{{ url_for('export_ds') }}">
+                        <input type="hidden" name="ds_id" value="{{ ds_info[0] }}"> <!-- ds_info[0] = id -->
+                        <button type="submit" class="btn btn-link nav-link" style="border: none;">Exportar</button>
+                    </form>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Ver todos os dados</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Alterar</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Historico de alterações</a>
+                </li>
+
+            </ul>
+        
+        </div>
+
+    </div>
+</nav>
+
+<div class="container">
+    <div id="ds-info">
+        <h5>{% if ds_info %}{{ ds_info[1] }}{% endif %}</h5> <!-- nome -->
+        <p>{% if ds_info %}Tipo: {{ ds_info[2] }}{% endif %}</p> <!-- tipo -->
+    </div>
+    
+    {% if ds_head %}
+    <h6>Primeiras 5 linhas:</h6>
+    <div id="ds-head">
+        {{ ds_head|safe }}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
