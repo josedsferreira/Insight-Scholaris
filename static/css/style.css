@@ -34,7 +34,7 @@
     :root {
         --form-box-width: 400px;
         --option-box-width: 400px;
-        --table-box-width: 400px;
+        --table-box-width: 450px;
     }
 }
 @media screen and (max-height: 670px) {
@@ -404,6 +404,11 @@ thead, .clickable-table-header {
     height: 400px;
     overflow: auto;
 }
+#ds-table {
+    width: 100%;
+    /* height: 400px; */
+    overflow: auto;
+}
 
 /* ====== New Base (Navbar) ====== */
 
@@ -424,9 +429,10 @@ thead, .clickable-table-header {
 .bg-sec-nav {
     background-color: rgb(235, 235, 235) !important;
 }
-#dataset-title {
+#secnav-title {
     width: 176px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: default;
 }

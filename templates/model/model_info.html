@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+
+
+{% if model_info %}
+<div class="container">
+    
+</div>
+{% else %}
+<div class="container">
+    <h5>Não há modelo ativo</h5>
+    <a href="{{ url_for('create_model') }}" class="btn btn-primary">Criar novo modelo</a>
+</div>
+{% endif %}
+
+{% endblock %}

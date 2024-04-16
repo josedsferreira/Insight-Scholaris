@@ -56,12 +56,15 @@ def store_dataset(df, db_name, df_name, df_type):
 
             # Insert a record into the dataFrames table
             query = text("""
-                         INSERT INTO dataframes (df_name, df_type) 
-                         VALUES (:df_name, :df_type) 
+                         INSERT INTO dataframes (df_name, df_type, num_cols, num_rows, num_unknowns, num_missing) 
+                         VALUES (:df_name, :df_type, :num_cols, :num_rows, :num_unknowns, :num_missing) 
                          RETURNING df_id
                          """)
 
-            params = {'df_name': df_name, 'df_type': df_type}
+            # create dictionary with dataframe info for df_info
+            info_dict = data.create_dataframe_info(df)
+
+            params = {'df_name': df_name, 'df_type': df_type, 'num_cols': info_dict['num_columns'], 'num_rows': info_dict['num_rows'], 'num_unknowns': info_dict['unknowns'], 'num_missing': info_dict['missing_values']}
             
             result = connection.execute(query, params)
             connection.commit()
@@ -87,7 +90,8 @@ def store_dataset(df, db_name, df_name, df_type):
 
 def retrieve_dataset_info(database_name, df_id):
     """
-    retrieves a dataset from a PostgreSQL database.
+    retrieves a dataset from a PostgreSQL database. Attention, JSON variables
+    become dictionaries when retrieved.
 
     Parameters:
     - database_name (str): The name of the PostgreSQL database.
@@ -113,6 +117,10 @@ def retrieve_dataset_info(database_name, df_id):
                         WHEN df_type = 2 THEN 'Para prever'
                         WHEN df_type = 3 THEN 'Previsão'
                     END AS "Tipo",
+                    num_cols AS "Numero de colunas",
+                    num_rows AS "Numero de linhas",
+                    num_unknowns AS "Numero de desconhecidos",
+                    num_missing AS "Numero de valores em falta",
                     date_trunc('day', created_at) AS "Criado em"
                     FROM dataFrames 
                     WHERE df_id = :id
@@ -145,15 +153,51 @@ def retrieve_dataset(database_name, df_id):
         # Create a connection to PostgreSQL database
         engine = create_engine(connection_link(database_name))
 
-        # Define the SQL query to select rows from the data table
-        query = f"""
-        SELECT *
-        FROM data
-        WHERE df_id = {df_id}
-        """
+        df_info = retrieve_dataset_info(database_name, df_id)
+        df_type = df_info[2]
 
-        # retrieve the dataset
-        df = pd.read_sql(query, engine)
+        # Define the SQL query to select rows from the data table
+        if df_type == 'Para prever':
+            query = text("""
+                     SELECT
+                     code_module,
+                     code_presentation,
+                     gender,
+                     region,
+                     highest_education,
+                     imd_band,
+                     age_band,
+                     num_of_prev_attempts,
+                     studied_credits,
+                     disability
+                     FROM data
+                     WHERE dataframe_id = :df_id
+                     """)
+        else:
+            query = text("""
+                        SELECT
+                        code_module,
+                        code_presentation,
+                        gender,
+                        region,
+                        highest_education,
+                        imd_band,
+                        age_band,
+                        num_of_prev_attempts,
+                        studied_credits,
+                        disability,
+                        final_result
+                        FROM data
+                        WHERE dataframe_id = :df_id
+                        """)
+
+        params = {'df_id': df_id}
+        
+        df = pd.read_sql(query, engine, params=params)
+
+        # Decode the DataFrame
+        df = data.decoder(df)
+
         return df
     
     except SQLAlchemyError as e:
@@ -996,7 +1040,6 @@ def ready_export(database_name, df_id):
                      disability
                      FROM data
                      WHERE dataframe_id = :df_id
-                     LIMIT :n_rows
                      """)
         else:
             query = text("""
@@ -1032,3 +1075,4 @@ def ready_export(database_name, df_id):
         print(f"An error occurred while exporting the dataset {df_id} from data table in {database_name}.")
         print(str(e))
         return False
+

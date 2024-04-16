@@ -3,6 +3,10 @@ CREATE TABLE dataframes (
     df_id SERIAL PRIMARY KEY,
     df_name VARCHAR(255),
     df_type integer, /* 1- para modelação, 2- para realizar previsao, 3- previsoes realizadas */
+    num_cols INTEGER,
+    num_rows INTEGER,
+    num_uknowns INTEGER,
+    num_missing INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

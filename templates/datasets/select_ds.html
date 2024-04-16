@@ -5,6 +5,8 @@
 <div class="container">
     <div class="body-con">
 
+        {% if list_df %}
+
         <div>
         <div id="form-title">
             <h5>Selecione um dataset</h5>
@@ -22,21 +24,10 @@
 
         <div id="clickable-table-box">
 
-            
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <ul class="flashes">
-                    {% for category, message in messages %}
-                        <li id="{{ category }}">{{ message }}</li>
-                    {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
-
             <div id="inner-table-box">
                 <table class="table">
                     <tr class="clickable-table-header">
+                        <th>ID</th>
                         <th>Nome</th>
                         <th>Tipo</th>
                         <th>Criado em</th>
@@ -45,6 +36,7 @@
                         <tr class="clickable-tr" onclick="document.getElementById('form{{ loop.index }}').submit();">
                             <form id="form{{ loop.index }}" method="POST" action="{{ url_for('ds_menu') }}">
                                 <input type="hidden" name="id" value="{{ line['ID'] }}">
+                                <td>{{ line['ID'] }}</td>
                                 <td>{{ line['Nome'] }}</td>
                                 <td>{{ line['Tipo'] }}</td>
                                 <td>{{ line['Criado em'].strftime('%d-%m-%Y') }}</td>
@@ -55,6 +47,14 @@
             </div>
         </div>
         </div>
+
+        {% else %}
+            <!-- Não ha datasets para selecionar -->
+            <div id="form-title">
+                <h5>Não há datasets para selecionar</h5>
+            </div>
+            <a href="{{ url_for('import_ds') }}" class="btn btn-primary">Importar novo dataset</a>
+        {% endif %}
 
     </div>
 </div>

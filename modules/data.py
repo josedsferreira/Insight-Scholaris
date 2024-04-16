@@ -189,7 +189,7 @@ def encoder(df):
 
     # Replace NaN values with 'Unknown'
     for column_name in column_names:
-        df[column_name].fillna("unknown", inplace=True)
+        df[column_name] = df[column_name].fillna("Unknown")
 
     # Replace values in each column based on the mappings
     for column, mapping in mappings.items():
@@ -247,3 +247,36 @@ def create_encoder(df):
 
 def update_encoder(df):
     pass
+
+def create_dataframe_info(df):
+    """
+    Create a dictionary with information about the given DataFrame.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame to be analyzed.
+
+    Returns:
+        str: A JSON string containing information about the DataFrame.
+    """
+    # Create a dictionary to store the information
+    info = {}
+
+    # Add the number of rows and columns to the dictionary
+    info['num_rows'] = df.shape[0]
+    info['num_columns'] = df.shape[1]
+
+    """ # Add the column names to the dictionary
+    info['columns'] = list(df.columns) """
+
+    # Add the number of missing values to the dictionary
+    info['missing_values'] = int(df.isnull().sum().sum())
+
+    # Add the number of unique values in each column to the dictionary
+    """ Cant add to the dictionary because it is not JSON serializable """
+    """ for column in df.columns:
+        info[column + '_count'] = df.groupby(column).size().to_dict() """
+
+    # Add the number of unknowns (0) in the DataFrame to the dictionary
+    info['unknowns'] = int((df == "0").sum().sum())
+
+    return info

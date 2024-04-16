@@ -5,7 +5,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-sec-nav">
     <div class="container-fluid">
 
-        <a class="navbar-brand" id="secnav-title" href="#">Dataset</a>
+        <a class="navbar-brand" id="dataset-title" href="#">Dados</a>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -17,13 +17,13 @@
                     </form>
                 </li>
 
-                <div class="vr"></div>
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Ver todos os dados</a>
+                </li>
 
                 <li class="nav-item">
                     <a class="nav-link" href="#">Alterar</a>
                 </li>
-
-                <div class="vr"></div>
 
                 <li class="nav-item">
                     <a class="nav-link" href="#">Historico de alterações</a>
@@ -37,21 +37,15 @@
 </nav>
 
 <div class="container">
-
-    {% if ds_info %}
     <div id="ds-info">
-        <h5>{{ ds_info[1] }}</h5> <!-- nome -->
-        <p>Tipo: {{ ds_info[2] }}</p>
-        <p>Numero de linhas: {{ ds_info[4] }}</p>
-        <p>Numero de colunas: {{ ds_info[3] }}</p>
-        <p>Numero de valores desconhecidos: {{ ds_info[5] }}</p>
+        <h5>{% if ds_info %}{{ ds_info[1] }}{% endif %}</h5> <!-- nome -->
+        <p>{% if ds_info %}Tipo: {{ ds_info[2] }}{% endif %}</p> <!-- tipo -->
     </div>
-    {% endif %}
     
-    {% if ds_head %}
-    <h6>Primeiras 5 linhas:</h6>
-    <div id="ds-head">
-        {{ ds_head|safe }}
+    {% if ds %}
+    <h6>Dados:</h6>
+    <div id="ds-table">
+        {{ ds|safe }}
     </div>
     {% endif %}
 </div>

@@ -1,3 +1,4 @@
+import json
 from flask import Flask, flash, render_template, request, redirect, url_for, session, send_file
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from modules import database as mdb
@@ -92,7 +93,7 @@ def change_pw():
 			return render_template("account/change_pw.html", user_type=current_user.user_type)
 		else:
 			password = request.form['new_pw']
-			email = session['email']
+			email = current_user.email
 			if mdb.change_password(database_name=db_name, email=email, new_password=password):
 				# change sucessful
 				current_user.default_pw = False
@@ -223,8 +224,11 @@ def import_ds():
 @login_required
 def select_ds():
 	list_df = mdb.list_datasets(database_name=db_name)
-	list_df = list_df.to_dict(orient='records')
-	return render_template("datasets/select_ds.html", user_type=current_user.user_type, list_df=list_df)
+	if list_df is not None:
+		list_df = list_df.to_dict(orient='records')
+		return render_template("datasets/select_ds.html", user_type=current_user.user_type, list_df=list_df)
+	else:
+		return render_template("datasets/select_ds.html", user_type=current_user.user_type, list_df=None)
 	
 @app.route("/ds_menu", methods=['GET', 'POST'])
 @login_required
@@ -260,17 +264,53 @@ def export_ds():
 	flash('Ocorreu um erro', 'error')
 	redirect(url_for('select_ds'))
 
+""" @app.route("/all_data", methods=['GET', 'POST'])
+@login_required
+def all_data():
+	if "ds_id" in request.form:
+		ds_id = request.form.get("ds_id")
+		ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=ds_id)
+		ds = mdb.retrieve_dataset(database_name=db_name, df_id=ds_id)
+		ds = ds.to_html(classes='table')
+		return render_template("datasets/all_data.html", user_type=current_user.user_type, ds=ds, ds_info=ds_info)
+	flash('Ocorreu um erro', 'error')
+	redirect(url_for('select_ds')) """
+
 # ============ MENU PREVER ============
 """ @app.route("/predict_menu")
 @login_required
 def predict_menu():
 	return render_template("predict_menu.html", user_type=current_user.user_type) """
 
+
+
 # ============ MENU MODELAR ============
 """ @app.route("/modeling_menu")
 @login_required
 def modeling_menu():
 	return render_template("modeling_menu.html", user_type=current_user.user_type) """
+
+@app.route("/create_model", methods=['GET', 'POST'])
+@login_required
+def create_model():
+	""" if request.method == 'POST' and 'model_name' in request.form:
+		model_name = request.form.get('model_name')
+		if mdb.create_model(database_name=db_name, model_name=model_name,):
+			flash('Modelo criado com sucesso', 'info')
+			return render_template("modeling/create_model.html", user_type=current_user.user_type)
+		else:
+			flash('Erro ao criar modelo', 'error')
+			return render_template("modeling/create_model.html", user_type=current_user.user_type)
+	elif request.method == 'POST':
+		flash('Preencha todos os campos antes de submeter', 'error')
+		return render_template("modeling/create_model.html", user_type=current_user.user_type)
+	elif request.method == 'GET': """
+	return render_template("model/create_model.html", user_type=current_user.user_type)
+
+@app.route("/model_info", methods=['GET'])
+@login_required
+def model_info():
+	return render_template("model/model_info.html", user_type=current_user.user_type)
 
 # ============ MAIN ============
 def main():

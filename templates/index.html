@@ -47,9 +47,10 @@
                 </svg>
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="dropdown-item" href="#">Action</a>
-                <a class="dropdown-item" href="#">Another action</a>
-                <a class="dropdown-item" href="#">Something else here</a>
+                <a class="dropdown-item" href="{{ url_for('model_info') }}">Ver modelo ativo</a>
+				<!-- <a class="dropdown-item" href="#">Treinar modelo</a> -->
+				<a class="dropdown-item" href="{{ url_for('create_model') }}">Criar novo modelo</a>
+				<a class="dropdown-item" href="#">Historico de modelos</a>
             </div>
             <p>Modelar</p>
         </div>
