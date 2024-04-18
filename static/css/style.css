@@ -79,6 +79,12 @@
     align-items: center;
     height: 100vh;
 }
+.body-con-modelform {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: 100vh; */
+}
 #ds-info {
     padding-top: 10px;
 }

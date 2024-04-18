@@ -293,19 +293,45 @@ def modeling_menu():
 @app.route("/create_model", methods=['GET', 'POST'])
 @login_required
 def create_model():
-	""" if request.method == 'POST' and 'model_name' in request.form:
+	if request.method == 'POST' and 'model_name' in request.form and 'type' in request.form:
 		model_name = request.form.get('model_name')
-		if mdb.create_model(database_name=db_name, model_name=model_name,):
-			flash('Modelo criado com sucesso', 'info')
-			return render_template("modeling/create_model.html", user_type=current_user.user_type)
+		model_type = request.form.get('type')
+		if 'model_params' in session:
+			session.pop('model_params', None)
+		session['model_params'] = [model_name, model_type]
+		
+		if model_type == "1": # SVM
+			return render_template("model/create_svm.html", user_type=current_user.user_type)
+		elif model_type == "2": #XGBoost
+			return render_template("model/create_xgb.html", user_type=current_user.user_type)
+		elif model_type == "3": #Random Forest
+			return render_template("model/create_rf.html", user_type=current_user.user_type)
 		else:
-			flash('Erro ao criar modelo', 'error')
-			return render_template("modeling/create_model.html", user_type=current_user.user_type)
+			flash('Erro: Modelo não suportado', 'error')
+			return render_template("model/create_model.html", user_type=current_user.user_type)
 	elif request.method == 'POST':
 		flash('Preencha todos os campos antes de submeter', 'error')
-		return render_template("modeling/create_model.html", user_type=current_user.user_type)
-	elif request.method == 'GET': """
-	return render_template("model/create_model.html", user_type=current_user.user_type)
+		return render_template("model/create_model.html", user_type=current_user.user_type)
+	elif request.method == 'GET':
+		return render_template("model/create_model.html", user_type=current_user.user_type)
+	
+@app.route("/create_svm", methods=['GET', 'POST'])
+@login_required
+def create_svm():
+	model_params = session.get('model_params', None) # if there is nothing in the session, return None
+	return render_template("model/create_svm.html", user_type=current_user.user_type)
+
+@app.route("/create_xgb", methods=['GET', 'POST'])
+@login_required
+def create_xgb():
+	model_params = session.get('model_params', None) # if there is nothing in the session, return None
+	return render_template("model/create_xgb.html", user_type=current_user.user_type)
+
+@app.route("/create_rf", methods=['GET', 'POST'])
+@login_required
+def create_rf():
+	model_params = session.get('model_params', None) # if there is nothing in the session, return None
+	return render_template("model/create_rf.html", user_type=current_user.user_type)
 
 @app.route("/model_info", methods=['GET'])
 @login_required

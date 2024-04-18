@@ -24,42 +24,24 @@
                 {% endwith %}
 
                 <form action="{{url_for('create_model')}}" method="post">
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" name="modelname" placeholder="Nome do modelo">
-                        <label for="floatingInput">Nome do modelo</label>
+                    <div class="mb-3">
+                        <label for="model_name" class="form-label">Nome do modelo</label>
+                        <input type="text" class="form-control" id="model_name" name="model_name" placeholder="Nome do modelo">
                     </div>
 
-                    <select class="form-select mb-3" id="algo-type" aria-label="Algoritmo" name="type" placeholder="Algoritmo">
-                        <option selected>Algoritmo</option>
-                        <option value="1">Support vector machines</option>
-                        <option value="2">XGBoost</option>
-                        <option value="3">Random Forest</option>
-                    </select>
-
-                    <div id="form-1" class="form-section mb-3" style="display: none;">
-                        <!-- Form for SVM -->
-                        <select class="form-select mb-3" id="kernel" aria-label="Kernel" name="kernel" placeholder="Kernel">
-                            <option selected>Kernel</option>
-                            <option value="1">Linear</option>
-                            <option value="2">Polinomial</option>
-                            <option value="3">Função de base radial</option>
+                    <div class="mb-3">
+                        <label for="algo-type" class="form-label">Algoritmo</label>
+                        <select class="form-select" id="algo-type" aria-label="Algoritmo" name="type" placeholder="Algoritmo">
+                            <option selected>Escolha um algoritmo:</option>
+                            <option value="1">Support vector machines</option>
+                            <option value="2">XGBoost</option>
+                            <option value="3">Random Forest</option>
                         </select>
-
-                    </div>
-                    
-                    <div id="form-2" class="form-section mb-3" style="display: none;">
-                        <!-- Form for XGBoost -->
-                        TESTE2TESTE2
-                    </div>
-                    
-                    <div id="form-3" class="form-section mb-3" style="display: none;">
-                        <!-- Form for Random Forest -->
-                        TESTE3TESTE3
                     </div>
 
             </div> <!-- Botao de submeter deve estar fora da caixa -->
                     <div id="submit-bt-div">
-                        <input class="btn btn-primary" type="submit" value="Criar">
+                        <input class="btn btn-primary" type="submit" value="Continuar">
                     </div>
                 </form>
         </div>

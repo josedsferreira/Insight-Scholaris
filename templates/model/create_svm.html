@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container">
+    <div class="body-con-modelform">
+
+        <div style="margin-top: 50px;">
+
+            <div id="form-title">
+                <h5>Criar modelo Support Vector Machines</h5>
+            </div>
+
+            <div id="form-box">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class="flashes">
+                        {% for category, message in messages %}
+                            <li id="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+
+                <form action="{{url_for('create_svm')}}" method="post">
+
+                    <div id="form-1" class="form-section mb-3">
+                        <!-- Form for SVM -->
+                        <div class="mb-3">
+                            <label for="kernel" class="form-label">Kernel</label>
+                            <select class="form-select mb-3" id="kernel" aria-label="Kernel" name="kernel" placeholder="Kernel">
+                                <option selected>Escolha um Kernel:</option>
+                                <option value="1">Linear</option>
+                                <option value="2">Polinomial</option>
+                                <option value="3">Função de base radial</option>
+                            </select>
+                        </div>
+
+                        <!-- Basic SVC options (if RBF and Poli) -->
+                        <div id="basic-svm-options" style="display: none;">
+                            <div class="mb-3">
+                                <label for="c-svc" class="form-label">C</label>
+                                <input type="number" class="form-control" id="c-svc" name="c-svc" placeholder="1.0" min="0.00001" step="any">
+                            </div>
+                            
+                        </div>
+
+                        <!-- Basic LinearSVC options (if Kernel Linear) -->
+                        <div id="basic-lsvm-options" style="display: none;">
+                            <div class="mb-3">
+                                <label for="c-lsvc" class="form-label">C</label>
+                                <input type="number" class="form-control" id="c-lsvc" name="c-lsvc" placeholder="1.0" min="0.00001" step="any">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="gamma-select" class="form-label">Gamma</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="gamma-select" id="scale" value="scale" onclick="disableInput()">
+                                    <label class="form-check-label" for="scale">Escalar</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="gamma-select" id="auto" value="auto" checked onclick="disableInput()">
+                                    <label class="form-check-label" for="auto">Auto</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="gamma-select" id="custom" value="custom" onclick="enableInput()">
+                                    <label class="form-check-label" for="custom">Personalizado</label>
+                                    <input type="number" class="form-control" id="custom-gamma" name="gamma" placeholder="Gamma" min="0" step="any" disabled style="display: none;">
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        <!-- Advanced SVC options (if RBF and Poli) -->
+                        <div id="advanced-svm-options" style="display: none;">
+                            
+                            TESTE ADVANCED SVM
+                        </div>
+
+                        <!-- Advanced LinearSVC options (if Linear kernel) -->
+                        <div id="advanced-lsvm-options" style="display: none;">
+                            
+                            ADVANCED LSVM OPTIONS TESTE
+                        </div>
+
+                        <!-- Button to show/hide advanced options -->
+                        <button type="button" class="btn btn-primary" id="toggle-advanced-svm-options" style="color: black; background-color: white; display: none;">
+                            Ver opções avançadas
+                        </button>
+
+                    </div>
+
+            </div> <!-- Botao de submeter deve estar fora da caixa -->
+                    <div id="submit-bt-div">
+                        <input class="btn btn-primary" type="submit" value="Criar">
+                    </div>
+                </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
