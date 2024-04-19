@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container">
+    <div class="body-con-modelform">
+
+        <div style="margin-top: 50px;">
+
+            <div id="form-title">
+                <h5>Criar modelo Support Vector Machines</h5>
+                <h6>Kernel: Linear</h6>
+            </div>
+
+            <div id="form-box">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class="flashes">
+                        {% for category, message in messages %}
+                            <li id="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+
+                <form action="{{url_for('create_poly_svm')}}" method="post">
+
+                    <div id="form-1" class="form-section mb-3">
+                        <!-- Basic LinearSVC options -->
+
+                        <!-- C -->
+                        <div id="basic-svm-options">
+                            <div class="mb-3">
+                                <label for="c" class="form-label">C</label>
+                                <input type="number" class="form-control" id="c" name="c" placeholder="1.0" value="1.0" min="0.00001" step="any">
+                            </div>
+                            
+                        </div>
+
+                        <!-- Gamma -->
+                        <div class="mb-3">
+                            <label for="gamma-select" class="form-label">Gamma</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gamma-select" id="scale" value="scale" onclick="disableGammaInput()">
+                                <label class="form-check-label" for="scale">Escalar</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gamma-select" id="auto" value="auto" checked onclick="disableGammaInput()">
+                                <label class="form-check-label" for="auto">Auto</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gamma-select" id="custom" value="custom" onclick="enableInput()">
+                                <label class="form-check-label" for="custom">Personalizado</label>
+                                <input type="number" class="form-control" id="custom-gamma" name="custom-gamma" placeholder="Gamma" min="0" step="any" disabled style="display: none;">
+                            </div>
+                        </div>
+
+                        <!-- Advanced LinearSVC options -->
+                        <div id="advanced-svm-options" style="display: none;">
+                            
+                            <!-- Shrinking -->
+                            <div class="mb-3">
+                                <label class="form-label">Shrinking</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="shrinking" id="shrinkingTrue" value="true" checked disabled>
+                                    <label class="form-check-label" for="shrinkingTrue">
+                                        Ativado
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="shrinking" id="shrinkingFalse" value="false" disabled>
+                                    <label class="form-check-label" for="shrinkingFalse">
+                                        Desativado
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Degree -->
+                            <div class="mb-3">
+                                <label for="degree" class="form-label">Degree</label>
+                                <input type="number" class="form-control" id="degree" name="degree" placeholder="3" min="0" step="1" disabled>
+                            </div>
+
+                            <!-- Coef0 -->
+                            <div class="mb-3">
+                                <label for="coef0" class="form-label">Coef0</label>
+                                <input type="number" class="form-control" id="coef0" name="coef0" placeholder="0.0" step="any" disabled>
+                            </div>
+
+                            <!-- Probability -->
+                            <div class="mb-3">
+                                <label class="form-label">Probability</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="probability" id="probabilityTrue" value="true" disabled>
+                                    <label class="form-check-label" for="probabilityTrue">
+                                        Ativado
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="probability" id="probabilityFalse" value="false" checked disabled>
+                                    <label class="form-check-label" for="probabilityFalse">
+                                        Desativado
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Random state -->
+                            <div class="mb-3" id="random-state-div" style="display: none;">
+                                <label class="form-label">Random State</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="random-state-none" name="random_state" value="none" checked disabled>
+                                    <label class="form-check-label" for="random-state-none">None</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="random-state-set" name="random_state" value="set" disabled>
+                                    <label class="form-check-label" for="random-state-set">Set</label>
+                                    <input type="number" class="form-control" id="random-state-value" name="random_state_value" placeholder="Enter an integer" style="display: none;" disabled>
+                                </div>
+                            </div>
+                            
+                            <!-- Tol -->
+                            <div class="mb-3">
+                                <label for="tol" class="form-label">Tol</label>
+                                <input type="number" class="form-control" id="tol" name="tol" placeholder="1e-3" value="1e-3" step="any" disabled>
+                            </div>
+
+                            <!-- Cache size -->
+                            <div class="mb-3">
+                                <label for="cache_size" class="form-label">Cache size (Mb)</label>
+                                <input type="number" class="form-control" id="cache_size" name="cache_size" placeholder="200" value="200" min="0" step="any" disabled>
+                            </div>
+
+                            <!-- Max iter -->
+                            <div class="mb-3">
+                                <label for="max-iter-select" class="form-label">Max Iter</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="max-iter-select" id="NoLimit" value="-1" checked onclick="disableMaxIterInput()" disabled>
+                                    <label class="form-check-label" for="NoLimit">Sem Limite</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="max-iter-select" id="custom" value="custom" onclick="enableMaxIterInput()" disabled>
+                                    <label class="form-check-label" for="custom">Limitado</label>
+                                    <input type="number" class="form-control" id="max-iter-custom" name="max-iter" placeholder="Max Iter" min="1" step="1" disabled style="display: none;" disabled>
+                                </div>
+                            </div>
+
+                            <!-- Decision function shape -->
+                            <div class="mb-3">
+                                <label class="form-label">Decision Function Shape</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="ovr" name="decision_function_shape" value="ovr" checked disabled>
+                                    <label class="form-check-label" for="ovr">One-vs-Rest (OvR)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="ovo" name="decision_function_shape" value="ovo" disabled>
+                                    <label class="form-check-label" for="ovo">One-vs-One (OvO)</label>
+                                </div>
+                            </div>
+
+                            <!-- Break ties -->
+                            <div class="mb-3">
+                                <label class="form-label">Break Ties</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="break-ties-true" name="break_ties" value="true" disabled>
+                                    <label class="form-check-label" for="break-ties-true">True</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="break-ties-false" name="break_ties" value="false" checked disabled>
+                                    <label class="form-check-label" for="break-ties-false">False</label>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        <!-- Button to show/hide advanced options -->
+                        <button type="button" class="btn btn-primary" id="toggle-advanced-svm-options" style="color: black; background-color: white;">
+                            Ver opções avançadas
+                        </button>
+
+                    </div>
+
+            </div> <!-- Botao de submeter deve estar fora da caixa -->
+                    <div id="submit-bt-div">
+                        <input class="btn btn-primary" type="submit" value="Criar">
+                    </div>
+                </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

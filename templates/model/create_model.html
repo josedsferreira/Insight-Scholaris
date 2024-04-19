@@ -39,6 +39,19 @@
                         </select>
                     </div>
 
+                    <div id="kernel-form" class="form-section mb-3" style="display: none;">
+                        <!-- Form for SVM -->
+                        <div class="mb-3">
+                            <label for="kernel" class="form-label">Kernel</label>
+                            <select class="form-select mb-3" id="kernel" aria-label="Kernel" name="kernel" placeholder="Kernel" disabled>
+                                <option selected>Escolha um Kernel:</option>
+                                <option value="1">Linear</option>
+                                <option value="2">Polinomial</option>
+                                <option value="3">Função de base radial</option>
+                            </select>
+                        </div>
+                    </div>
+
             </div> <!-- Botao de submeter deve estar fora da caixa -->
                     <div id="submit-bt-div">
                         <input class="btn btn-primary" type="submit" value="Continuar">

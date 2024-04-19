@@ -296,12 +296,32 @@ def create_model():
 	if request.method == 'POST' and 'model_name' in request.form and 'type' in request.form:
 		model_name = request.form.get('model_name')
 		model_type = request.form.get('type')
+
 		if 'model_params' in session:
 			session.pop('model_params', None)
-		session['model_params'] = [model_name, model_type]
+		session['model_params'] = {}
+		session['model_params']['model_name'] = model_name
+		session['model_params']['model_type'] = "SVM" if model_type == "1" else "XGBoost" if model_type == "2" else "Random Forest"
 		
-		if model_type == "1": # SVM
-			return render_template("model/create_svm.html", user_type=current_user.user_type)
+		if model_type == "1": #SVM
+			if 'kernel' in request.form:
+				kernel = request.form.get('kernel')
+				if kernel == "1": #Linear
+					session['model_params']['kernel'] = "linear"
+					return render_template("model/create_lsvm.html", user_type=current_user.user_type)
+				elif kernel == "2": #Poly
+					session['model_params']['kernel'] = "poly"
+					return render_template("model/create_poly_svm.html", user_type=current_user.user_type)
+				elif kernel == "3": #RBF
+					session['model_params']['kernel'] = "rbf"
+					return render_template("model/create_rbf_svm.html", user_type=current_user.user_type)
+				else:
+					flash('Erro: Kernel não suportado', 'error')
+					return render_template("model/create_model.html", user_type=current_user.user_type)
+			else:
+				flash('Erro: Selecione um kernel', 'error')
+				return render_template("model/create_model.html", user_type=current_user.user_type)
+			
 		elif model_type == "2": #XGBoost
 			return render_template("model/create_xgb.html", user_type=current_user.user_type)
 		elif model_type == "3": #Random Forest
@@ -315,17 +335,123 @@ def create_model():
 	elif request.method == 'GET':
 		return render_template("model/create_model.html", user_type=current_user.user_type)
 	
-@app.route("/create_svm", methods=['GET', 'POST'])
+@app.route("/create_lsvm", methods=['GET', 'POST'])
 @login_required
-def create_svm():
+def create_lsvm():
 	model_params = session.get('model_params', None) # if there is nothing in the session, return None
-	return render_template("model/create_svm.html", user_type=current_user.user_type)
+	if model_params is None:
+		flash('Erro: Parâmetros do modelo não encontrados', 'error')
+		return render_template("model/create_model.html", user_type=current_user.user_type)
+
+	elif request.method == 'POST':
+		if 'c' in request.form:
+			c = request.form.get('c')
+			session['model_params']['C'] = c
+		if 'shrinking' in request.form:
+			shrinking = request.form.get('shrinking')
+			session['model_params']['shrinking'] = shrinking
+		if 'probability' in request.form:
+			probability = request.form.get('probability')
+			session['model_params']['probability'] = probability
+		if 'random_state' in request.form:
+			random_state = request.form.get('random_state')
+			if random_state == 'set':
+				random_state = request.form.get('random_state_value')
+				session['model_params']['random_state'] = random_state
+		if 'tol' in request.form:
+			tol = request.form.get('tol')
+			session['model_params']['tol'] = tol
+		if 'cache_size' in request.form:
+			cache_size = request.form.get('cache_size')
+			session['model_params']['cache_size'] = cache_size
+		if 'max_iter-select' in request.form:
+			max_iter = request.form.get('max_iter-select')
+			if max-iter == 'custom':
+				max_iter = request.form.get('max_iter')
+			session['model_params']['max_iter'] = max_iter
+		if 'decision_function_shape' in request.form:
+			decision_function_shape = request.form.get('decision_function_shape')
+			session['model_params']['decision_function_shape'] = decision_function_shape
+		if 'break_ties' in request.form:
+			break_ties = request.form.get('break_ties')
+			session['model_params']['break_ties'] = break_ties
+		return render_template("teste.html", user_type=current_user.user_type, model_params=session['model_params'])
+	elif request.method == 'GET':
+		return render_template("model/create_lsvm.html", user_type=current_user.user_type)
+
+@app.route("/create_rbf_svm", methods=['GET', 'POST'])
+@login_required
+def create_rbf_svm():
+	model_params = session.get('model_params', None) # if there is nothing in the session, return None
+	return render_template("model/create_rbf_svm.html", user_type=current_user.user_type)
+
+@app.route("/create_poly_svm", methods=['GET', 'POST'])
+@login_required
+def create_poly_svm():
+	model_params = session.get('model_params', None) # if there is nothing in the session, return None
+	if model_params is None:
+		flash('Erro: Parâmetros do modelo não encontrados', 'error')
+		return render_template("model/create_model.html", user_type=current_user.user_type)
+
+	elif request.method == 'POST':
+		if 'c' in request.form:
+			c = request.form.get('c')
+			session['model_params']['C'] = c
+		if 'degree' in request.form:
+			degree = request.form.get('degree')
+			session['model_params']['degree'] = degree
+		if 'gamma' in request.form:
+			gamma = request.form.get('gamma')
+			if gamma == 'custom':
+				gamma = request.form.get('gamma_value')
+			session['model_params']['gamma'] = gamma
+		if 'coef0' in request.form:
+			coef0 = request.form.get('coef0')
+			session['model_params']['coef0'] = coef0
+		if 'shrinking' in request.form:
+			shrinking = request.form.get('shrinking')
+			session['model_params']['shrinking'] = shrinking
+		if 'probability' in request.form:
+			probability = request.form.get('probability')
+			session['model_params']['probability'] = probability
+		if 'random_state' in request.form:
+			random_state = request.form.get('random_state')
+			if random_state == 'set':
+				random_state = request.form.get('random_state_value')
+				session['model_params']['random_state'] = random_state
+		if 'tol' in request.form:
+			tol = request.form.get('tol')
+			session['model_params']['tol'] = tol
+		if 'cache_size' in request.form:
+			cache_size = request.form.get('cache_size')
+			session['model_params']['cache_size'] = cache_size
+		if 'max_iter-select' in request.form:
+			max_iter = request.form.get('max_iter-select')
+			if max-iter == 'custom':
+				max_iter = request.form.get('max_iter')
+			session['model_params']['max_iter'] = max_iter
+		if 'decision_function_shape' in request.form:
+			decision_function_shape = request.form.get('decision_function_shape')
+			session['model_params']['decision_function_shape'] = decision_function_shape
+		if 'break_ties' in request.form:
+			break_ties = request.form.get('break_ties')
+			session['model_params']['break_ties'] = break_ties
+		return render_template("teste.html", user_type=current_user.user_type, model_params=session['model_params'])
+	elif request.method == 'GET':
+		return render_template("model/create_poly_svm.html", user_type=current_user.user_type)
 
 @app.route("/create_xgb", methods=['GET', 'POST'])
 @login_required
 def create_xgb():
 	model_params = session.get('model_params', None) # if there is nothing in the session, return None
-	return render_template("model/create_xgb.html", user_type=current_user.user_type)
+	if model_params is None:
+		flash('Erro: Parâmetros do modelo não encontrados', 'error')
+		return render_template("model/create_xgb.html", user_type=current_user.user_type)
+
+	elif request.method == 'POST':
+		return render_template("model/create_xgb.html", user_type=current_user.user_type)
+	elif request.method == 'GET':
+		return render_template("model/create_xgb.html", user_type=current_user.user_type)
 
 @app.route("/create_rf", methods=['GET', 'POST'])
 @login_required

@@ -11,29 +11,53 @@
 }); */
 
 
-/* Create Model Form */
-/* document.getElementById('algo-type').addEventListener('change', function() {
-    // Hide all form sections
-    document.querySelectorAll('.form-section').forEach(function(section) {
-        section.style.display = 'none';
+/* Show or hide Kernel selector Form */
+var algoTypeElement = document.getElementById('algo-type');
+if (algoTypeElement) {
+    algoTypeElement.addEventListener('change', function() {
+        var selectedAlgo = this.value;
+        const kernelForm = document.getElementById('kernel-form');
+        const selector = document.getElementById('kernel');
+
+        switch(selectedAlgo) {
+            case '1':
+                // SVM is selected
+                if (kernelForm.style.display === 'none') {
+                    kernelForm.style.display = 'block';
+                }
+                if (selector.hasAttribute('disabled')) {
+                    selector.removeAttribute('disabled');
+                }
+                break;
+            case '2':
+                // XGB is selected
+                if (kernelForm.style.display === 'block') {
+                    kernelForm.style.display = 'none';
+                }
+                if (!selector.hasAttribute('disabled')) {
+                    selector.setAttribute('disabled', 'disabled');
+                }
+                break;
+            case '3':
+                // RF is selected
+                if (kernelForm.style.display === 'block') {
+                    kernelForm.style.display = 'none';
+                }
+                if (!selector.hasAttribute('disabled')) {
+                    selector.setAttribute('disabled', 'disabled');
+                }
+                break;
+            default:
+                // Code to execute when no option is selected
+                console.log('No algorithm selected');
+        }
     });
+}
 
-    // Hide the submit button
-    document.getElementById('submit-bt-div').style.display = 'none';
-
-    // Show the selected form section
-    const selectedValue = this.value;
-    if (selectedValue) {
-        document.getElementById('form-' + selectedValue).style.display = 'block';
-
-        // Show the submit button
-        document.getElementById('submit-bt-div').style.display = 'block';
-    }
-}); */
 
 
 /* show advanced options button and the basic options only when kernel is selected */
-document.getElementById('kernel').addEventListener('change', function() {
+/* document.getElementById('kernel').addEventListener('change', function() {
 
     const selectedOption = this.value;
 
@@ -45,7 +69,8 @@ document.getElementById('kernel').addEventListener('change', function() {
     const basic_LSVM_Options = document.getElementById('basic-lsvm-options');
 
     // get the advanced options div, they should be hidden when changing kernel
-    const advanced_SVM_Options = document.getElementById('advanced-svm-options');
+    const advanced_poli_SVM_Options = document.getElementById('advanced-poli-svm-options');
+    const advanced_rbf_SVM_Options = document.getElementById('advanced-rbf-svm-options');
     const advanced_LSVM_Options = document.getElementById('advanced-lsvm-options');
 
     // Show the button if 'Linear', 'Polinomial', or 'Função de base radial' is selected
@@ -70,70 +95,98 @@ document.getElementById('kernel').addEventListener('change', function() {
     }
 
     // Hide the advanced options when changing kernel
-    if (advanced_SVM_Options.style.display === 'block') {
-        advanced_SVM_Options.style.display = 'none';
+    if (advanced_poli_SVM_Options.style.display === 'block') {
+        advanced_poli_SVM_Options.style.display = 'none';
+    }
+    if (advanced_rbf_SVM_Options.style.display === 'block') {
+        advanced_rbf_SVM_Options.style.display = 'none';
     }
     if (advanced_LSVM_Options.style.display === 'block') {
         advanced_LSVM_Options.style.display = 'none';
     }
-});
+}); */
 
 
 /* Toggle advanced SVM options */
-document.getElementById('toggle-advanced-svm-options').addEventListener('click', function() {
+toggleAdvancedSVM = document.getElementById('toggle-advanced-svm-options');
+if (toggleAdvancedSVM) {
+    toggleAdvancedSVM.addEventListener('click', function() {
     
-    // get the options div
-    const advanced_SVM_Options = document.getElementById('advanced-svm-options');
-    const advanced_LSVM_Options = document.getElementById('advanced-lsvm-options');
+        // get the options div
+        const advanced_Options = document.getElementById('advanced-svm-options');
 
-    // get the selected kernel
-    const selectedKernel = document.getElementById('kernel').value;
+        // Select all form elements inside the div
+        var formElements = advanced_Options.querySelectorAll('input, select, textarea, button');
 
-    switch(selectedKernel) {
-        case '1':
-            // 'Linear' is selected
-            // show or hide the advanced options
-            if (advanced_LSVM_Options.style.display === 'none') {
-                advanced_LSVM_Options.style.display = 'block';
-                this.textContent = 'Esconder opções avançadas';
-            } else {
-                advanced_LSVM_Options.style.display = 'none';
-                this.textContent = 'Ver opções avançadas';
-            }
-            break;
-        case '2':
-        case '3':
-            // 'Função de base radial' or 'Polinomial' is selected
-            // show or hide the advanced options
-            if (advanced_SVM_Options.style.display === 'none') {
-                advanced_SVM_Options.style.display = 'block';
-                this.textContent = 'Esconder opções avançadas';
-            } else {
-                advanced_SVM_Options.style.display = 'none';
-                this.textContent = 'Ver opções avançadas';
-            }
-            break;
-        default:
-            // Code to execute when no option is selected
-            console.log('No kernel selected');
-    }
-});
+        // show or hide the advanced options
+        if (advanced_Options.style.display === 'none') {
+            advanced_Options.style.display = 'block';
+            this.textContent = 'Esconder opções avançadas';
+
+            // Loop through the form elements and turn them on
+            formElements.forEach(function(element) {
+                if (element.id !== 'max-iter-custom') {
+                    element.disabled = false;
+                }
+            });
+
+        } else {
+            advanced_Options.style.display = 'none';
+            this.textContent = 'Ver opções avançadas';
+
+            // Loop through the form elements and disable them
+            formElements.forEach(function(element) {
+                element.disabled = true;
+            });
+        }
+    });
+}
+
+
 
 
 
 /* Show custom gamma option */
-function enableInput() {
+function enableGammaInput() {
     document.getElementById('custom-gamma').disabled = false;
     document.getElementById('custom-gamma').style.display = 'block';
 }
-function disableInput() {
+function disableGammaInput() {
     document.getElementById('custom-gamma').disabled = true;
     document.getElementById('custom-gamma').style.display = 'none';
 }
+/* Show custom max iter option */
+function enableMaxIterInput() {
+    document.getElementById('max-iter-custom').disabled = false;
+    document.getElementById('max-iter-custom').style.display = 'block';
+}
+function disableMaxIterInput() {
+    document.getElementById('max-iter-custom').disabled = true;
+    document.getElementById('max-iter-custom').style.display = 'none';
+}
+/* Show or hide custom random_state */
+var randomStateElements = document.getElementsByName('random_state');
+var randomStateValueElement = document.getElementById('random-state-value');
+if (randomStateElements.length > 0 && randomStateValueElement) {
+    randomStateElements.forEach(function(elm) {
+        elm.addEventListener('change', function() {
+            randomStateValueElement.style.display = (this.value == 'set') ? 'block' : 'none';
+            randomStateValueElement.disabled = (this.value == 'set') ? false : true;
+        });
+    });
+}
 
-
-
-
+/* Hide or show Random State div */
+var probabilityElements = document.getElementsByName('probability');
+var randomStateDiv = document.getElementById('random-state-div');
+if (probabilityElements.length > 0 && randomStateDiv) {
+    probabilityElements.forEach(function(elm) {
+        elm.addEventListener('change', function() {
+            randomStateDiv.style.display = (this.value == 'true') ? 'block' : 'none';
+            element.disabled = (this.value == 'true') ? false : true;
+        });
+    });
+}
 
 
 

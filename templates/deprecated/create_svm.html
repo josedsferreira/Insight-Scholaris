@@ -72,10 +72,40 @@
                             
                         </div>
 
-                        <!-- Advanced SVC options (if RBF and Poli) -->
-                        <div id="advanced-svm-options" style="display: none;">
+                        <!-- Advanced Poli SVC options -->
+                        <div id="advanced-poli-svm-options" style="display: none;">
+                            <div class="mb-3">
+                                <label for="degree" class="form-label">Degree</label>
+                                <input type="number" class="form-control" id="degree" name="degree" placeholder="3" min="0" step="1">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="coef0" class="form-label">Coef0</label>
+                                <input type="number" class="form-control" id="coef0" name="coef0" placeholder="0.0" step="any">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Shrinking</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="shrinking" id="shrinkingTrue" value="true" checked>
+                                    <label class="form-check-label" for="shrinkingTrue">
+                                        True
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="shrinking" id="shrinkingFalse" value="false">
+                                    <label class="form-check-label" for="shrinkingFalse">
+                                        False
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Advanced RBF SVC options  -->
+                        <div id="advanced-rbf-svm-options" style="display: none;">
                             
-                            TESTE ADVANCED SVM
+                            TESTE ADVANCED RBF SVM
                         </div>
 
                         <!-- Advanced LinearSVC options (if Linear kernel) -->
