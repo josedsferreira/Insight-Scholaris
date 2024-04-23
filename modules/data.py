@@ -160,13 +160,12 @@ def decoder(df):
         # Load the JSON file into a dictionary
         mappings = json.load(f)
 
+    # Convert the keys in the mappings dictionary to integers
+    mappings = {k: {int(kk): vv for kk, vv in v.items()} for k, v in mappings.items()}
+
     # Replace values in each column based on the mappings
     for column, mapping in mappings.items():
         if column in df.columns:
-            """ 
-            # Convert keys in mapping to int, because JSON keys are always strings
-            mapping = {int(k): v for k, v in mapping.items()} 
-            """
             df[column] = df[column].map(mapping)
 
     return df
@@ -189,16 +188,12 @@ def encoder(df):
 
     # Replace NaN values with 'Unknown'
     for column_name in column_names:
-        df[column_name] = df[column_name].fillna("Unknown")
+        if column_name != "final_result":
+            df[column_name] = df[column_name].fillna("Unknown")
 
     # Replace values in each column based on the mappings
     for column, mapping in mappings.items():
         if column in df.columns:
-            """ 
-            # Não converter talvez resolva o problema dos numeros ordinais
-            # Convert keys in mapping to int, because JSON keys are always strings
-            mapping = {int(k): v for k, v in mapping.items()} 
-            """
             df[column] = df[column].map(mapping)
 
     return df
@@ -238,6 +233,9 @@ def is_df_encoded(df):
         if column in df.columns:
             # Check if all values in the column are in the mapping
             if not set(df[column].unique()).issubset(set(mapping.values())):
+                return False
+            # Check if any values in the column contain '[', ']', or '<'
+            if df[column].apply(lambda x: any(char in str(x) for char in ['[', ']', '<'])).any():
                 return False
 
     return True

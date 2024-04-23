@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container">
+    <div class="body-con">
+
+        <div>
+
+            <div id="form-title">
+                <h5>Treinar modelo</h5>
+            </div>
+
+            <div id="form-box">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class="flashes">
+                        {% for category, message in messages %}
+                            <li id="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+
+                <form action="{{url_for('train_model')}}" method="post">
+                    
+                    <!-- learning_rate -->
+                    <div class="mb-3">
+                        <label for="split" class="form-label">Percentagem de dados para treino</label>
+                        <input type="number" class="form-control" id="split" name="split" placeholder="20" value="20" min="0" max="100" step="1">
+                    </div>
+
+            </div> <!-- Botao de submeter deve estar fora da caixa -->
+                    <div id="submit-bt-div">
+                        <input class="btn btn-primary" type="submit" value="Continuar">
+                    </div>
+                </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

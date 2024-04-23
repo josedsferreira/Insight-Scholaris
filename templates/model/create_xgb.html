@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container">
+    <div class="body-con-modelform">
+
+        <div style="margin-top: 50px;">
+
+            <div id="form-title">
+                <h5>Criar modelo XGBoost</h5>
+            </div>
+
+            <div id="form-box">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class="flashes">
+                        {% for category, message in messages %}
+                            <li id="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+
+                <form action="{{url_for('create_xgb')}}" method="post">
+
+                    <div id="form-1" class="form-section mb-3">
+                        <!-- Basic XGB options -->
+
+                        <div id="basic-xgb-options">
+
+                            <!-- learning_rate -->
+                            <div class="mb-3">
+                                <label for="learning_rate" class="form-label">Learning Rate (shrinkage)</label>
+                                <input type="number" class="form-control" id="learning_rate" name="learning_rate" placeholder="0.3" value="0.3" min="0" max="1" step="any">
+                            </div>
+
+                            <!-- n_estimators -->
+                            <div class="mb-3">
+                                <label for="n_estimators" class="form-label">Number of estimators</label>
+                                <input type="number" class="form-control" id="n_estimators" name="n_estimators" placeholder="100" value="100" min="1" step="1">
+                            </div>
+
+                            <!-- max_depth -->
+                            <div class="mb-3">
+                                <label for="max_depth" class="form-label">Maximum Depth</label>
+                                <input type="number" class="form-control" id="max_depth" name="max_depth" placeholder="6" value="6" min="1" step="1">
+                            </div>
+                            
+                        </div>
+
+                        <!-- Advanced XGB options -->
+                        <div id="advanced-XGB-options" style="display: none;">
+                            
+                            <!-- min_child_weight -->
+                            <div class="mb-3">
+                                <label for="min_child_weight" class="form-label">Minimum Child Weight</label>
+                                <input type="number" class="form-control" id="min_child_weight" name="min_child_weight" placeholder="1" value="1" min="0" step="any" disabled>
+                            </div>
+
+                            <!-- subsample -->
+                            <div class="mb-3">
+                                <label for="subsample" class="form-label">Subsample (%)</label>
+                                <input type="number" class="form-control" id="subsample" name="subsample" placeholder="1" value="1" min="0" max="1" step="any" disabled>
+                            </div>
+
+                            <!-- gamma -->
+                            <div class="mb-3">
+                                <label for="gamma" class="form-label">Gamma</label>
+                                <input type="number" class="form-control" id="gamma" name="gamma" placeholder="0" value="0" min="0" step="any" disabled>
+                            </div>
+
+                        </div>
+
+                        <!-- Button to show/hide advanced options -->
+                        <button type="button" class="btn btn-primary" id="toggle-advanced-xgb-options" style="color: black; background-color: white;">
+                            Ver opções avançadas
+                        </button>
+
+                    </div>
+                
+
+            </div> <!-- Botao de submeter deve estar fora da caixa -->
+                    <div id="submit-bt-div">
+                        <input class="btn btn-primary" type="submit" value="Criar">
+                    </div>
+                </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

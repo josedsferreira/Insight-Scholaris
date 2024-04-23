@@ -45,6 +45,9 @@ def store_dataset(df, db_name, df_name, df_type):
     try:
         # Create a connection to PostgreSQL database
         engine = create_engine(connection_link(db_name))
+
+        # Drop all rows from df that don't have a value for 'final_result' or that have NaN
+        df = df.dropna(subset=['final_result'])
         
         #encode the dataframe if it is not encoded
         if not data.is_df_encoded(df):
@@ -135,7 +138,7 @@ def retrieve_dataset_info(database_name, df_id):
         print(f"An error occurred while retrieving the dataset {df_id} from dataFrames table in {database_name}.")
         print(str(e))
 
-def retrieve_dataset(database_name, df_id):
+def retrieve_dataset(database_name, df_id, decode=True):
     """
     retrieves a dataset from a PostgreSQL database.
 
@@ -195,8 +198,9 @@ def retrieve_dataset(database_name, df_id):
         
         df = pd.read_sql(query, engine, params=params)
 
-        # Decode the DataFrame
-        df = data.decoder(df)
+        if decode:
+            # Decode the DataFrame
+            df = data.decoder(df)
 
         return df
     
@@ -320,8 +324,15 @@ def store_model(model, database_name, model_name, model_type):
     - database_name (str): The name of the database.
     - model_name (str): The name of the model.
     - model_type (int): The type of the model. (1=SVM, 2=XGBOOST, 3=Random Forest)
+
+    Returns:
+    - model_id (int): The ID of the stored model.
     """
-    params = json.dumps(model.get_params())
+
+    model_params = model.get_params()
+    # Convert 'Missing' value from NaN to None so that JSON accepts it
+    model_params['missing'] = None
+    json_params = json.dumps(model_params)
 
     try:
         # Create a connection to PostgreSQL database
@@ -333,37 +344,145 @@ def store_model(model, database_name, model_name, model_type):
             # Insert a record into the models table
             query = text(f"""
                          INSERT INTO models (
-                         model_name, model_type, model_file_name, parameters) 
-                         VALUES (:model_name, :model_type, :model_file_name, :parameters) 
+                         model_name, model_type, parameters) 
+                         VALUES (:model_name, :model_type, :parameters) 
                          RETURNING model_id
                          """)
             
-            result = connection.execute(query, \
-                                        model_name=model_name, \
-                                            model_type=model_type, \
-                                                model_file_name=model_name + '.pkl', \
-                                                    parameters=params)
+            params = {
+                        'model_name': model_name,
+                        'model_type': model_type,
+                        'parameters': json_params
+                    }
+            
+            result = connection.execute(query, params)
+            model_id = result.fetchone()[0]
+            connection.commit()
+
+            file_name = set_model_file_name(database_name, model_id, model_name)
+
+            # Save the model to a file
+            save_model_file(model, file_name)
+            print(f"Model {model_name} stored successfully in {database_name}. ID: {model_id}")
+            return model_id
 
     except SQLAlchemyError as e:
         print(f"An error occurred while storing the model {model_name} in {database_name}.")
         print(str(e))
+        return None
+    
+def set_model_file_name(database_name, model_id, model_name):
+    """
+    Set the model file name in the models table.
+    
+    Parameters:
+    - database_name (str): The name of the database.
+    - model_id (int): The ID of the model.
+    - model_name (str): The name of the model file.
 
-    # Save the model to a file
-    save_model_file(model, model_name)
+    Returns:
+    - file_name (str): The name of the model file.
+    """
 
-def save_model_file(model, model_name):
+    file_name = model_name + '_' + str(model_id) + '.pkl'
+
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Store the model in the database
+        with engine.connect() as connection:
+
+            # Update the model in the models table
+            query = text(f"""
+                        UPDATE models
+                        SET 
+                        model_file_name = :file_name
+                        WHERE model_id = :model_id
+                        """)
+            
+            params = {'file_name': file_name, 'model_id': model_id}
+            
+            connection.execute(query, params)
+            connection.commit()
+            return file_name
+
+    except SQLAlchemyError as e:
+        print(f"An error occurred while updating the model file name for id {model_id} in {database_name}.")
+        print(str(e))
+
+def update_model_file(database_name, model_id, model):
+    """
+    Update a model file using info from the database.
+    
+    Parameters:
+    - database_name (str): The name of the database.
+    - model_id (int): The ID of the model to update.
+
+    Returns:
+    - success (bool): True if the model was updated successfully, False otherwise.
+    """
+
+    try:
+        # first retrieve the model info
+        model_info = retireve_model_info(database_name, model_id)
+        model_name = model_info['model_name'].values[0]
+        save_model_file(model, model_name)
+        return True
+    except SQLAlchemyError as e:
+        print(f"An error occurred while updating the model file for id {model_id} .")
+        print(str(e))
+        return False
+
+def retireve_model_info(database_name, model_id):
+    """
+    retrieves a model from a PostgreSQL database.
+
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - model_id (int): The ID of the model to retrieve.
+
+    Returns:
+    - model_info (pandas.DataFrame): The dataframe containing the model info.
+
+    Raises:
+    - SQLAlchemyError: If an error occurs while retrieving the dataset.
+    """
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Define the SQL query to select rows from the model table
+        query = text("""
+        SELECT *
+        FROM models
+        WHERE model_id = :model_id
+        """)
+
+        params = {'model_id': model_id}
+
+        # retrieve the dataframe with the model info
+        model_info = pd.read_sql(query, engine, params=params)
+
+        return model_info
+    
+    except SQLAlchemyError as e:
+        print(f"An error occurred while retrieving the model info {model_id} from model table in {database_name}.")
+        print(str(e))
+
+def save_model_file(model, file_name):
     """
     Save a model to a file in the model folder.
 
     Parameters:
     - model (object): The model to save.
-    - model_name (str): The name of the model.
+    - file_name (str): The name to be given to the file.
     """
     load_dotenv()
-    folder_path = os.getenv('MODEL_FILE_PATH')
+    folder_path = os.getenv('MODEL_FOLDER_PATH')
 
     # Combine the folder path and the filename
-    file_path = os.path.join(folder_path, model_name + '.pkl')
+    file_path = os.path.join(folder_path, file_name)
 
     with open(file_path, 'wb') as f:
         pickle.dump(model, f)
@@ -387,21 +506,28 @@ def retrieve_model(database_name, model_id):
         engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select rows from the model table
-        query = f"""
+        query = text("""
         SELECT *
         FROM models
-        WHERE model_id = {model_id}
-        """
+        WHERE model_id = :model_id
+        """)
+
+        params={"model_id": model_id}
 
         # retrieve the dataframe with the model info
-        model_info = pd.read_sql(query, engine)
+        model_info = pd.read_sql(query, engine, params=params)
 
-        # Get the model file name from the dataframe
-        model_file_name = model_info['model_file_name'].values[0]
+        # Check if the model_id exists in the table
+        if not model_info.empty:
+            # Get the model file name from the dataframe
+            model_file_name = model_info['model_file_name'].values[0]
+        else:
+            print(f"Model with id {model_id} not found.")
+            model_file_name = None
 
         # Combine the folder path and the model file name
         load_dotenv()
-        folder_path = os.getenv('MODEL_FILE_PATH')
+        folder_path = os.getenv('MODEL_FOLDER_PATH')
         model_file_path = os.path.join(folder_path, model_file_name)
 
         # Load the model from the file
@@ -411,7 +537,7 @@ def retrieve_model(database_name, model_id):
         return model
     
     except SQLAlchemyError as e:
-        print(f"An error occurred while retrieving the model info {model_id} from model table in {database_name}.")
+        print(f"An error occurred while retrieving the model {model_id} from model table in {database_name}.")
         print(str(e))
 
 def list_models(database_name):
@@ -441,14 +567,6 @@ def list_models(database_name):
     except SQLAlchemyError as e:
         print(f"An error occurred while listing the models from {database_name}.")
         print(str(e))
-
-""" # Not needed, stored like a dataset
-def store_prediction(df, database_name, dataset_name):
-    pass
-
-def retrieve_prediction(database_name, dataset_name):
-    pass
- """
 
 def update_df_history(database_name, df_id, change):
     """
@@ -516,28 +634,24 @@ def retrieve_df_history(database_name, df_id):
         print(f"An error occurred while retrieving the dataframe history {df_id} from dataframe_changes table in {database_name}.")
         print(str(e))
 
-def store_evaluations(database_name, model_id, fp, fn, tp, tn):
+def store_evaluation(database_name, model_id, matrix):
     """
     Store the evaluations of a model in the evaluations table.
     
     Parameters:
     - database_name (str): The name of the database.
     - model_id (int): The ID of the model.
-    - fp (int): The number of false positives.
-    - fn (int): The number of false negatives.
-    - tp (int): The number of true positives.
-    - tn (int): The number of true negatives.
+    - matrix (numpy.ndarray): The confusion matrix of the model.
+
+    Returns:
+    - success (bool): True if the evaluations were stored successfully, False otherwise.
     """
-    """
-    create table evaluations (
-    evaluation_id SERIAL PRIMARY KEY,
-    model_id INTEGER REFERENCES models(model_id),
-    fp INTEGER,
-    fn INTEGER,
-    tp INTEGER,
-    tn INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
-    """
+
+    fp, fn, tp, tn = matrix.ravel()
+    
+    # Convert numpy.int64 types to int
+    fp, fn, tp, tn = int(fp), int(fn), int(tp), int(tn)
+    
     try:
         # Create a connection to PostgreSQL database
         engine = create_engine(connection_link(database_name))
@@ -553,16 +667,22 @@ def store_evaluations(database_name, model_id, fp, fn, tp, tn):
                          RETURNING evaluation_id
                          """)
             
-            result = connection.execute(query, \
-                                        model_id=model_id, \
-                                            fp=fp, \
-                                                fn=fn, \
-                                                    tp=tp, \
-                                                        tn=tn)
+            params = {
+                        'model_id': model_id,
+                        'fp': fp,
+                        'fn': fn,
+                        'tp': tp,
+                        'tn': tn
+                    }
+            
+            result = connection.execute(query, params)
+            connection.commit()
 
+        return True
     except SQLAlchemyError as e:
         print(f"An error occurred while storing the model {model_id} eval in {database_name}.")
         print(str(e))
+        return False
 
 def retrieve_evaluations(database_name, model_id):
     """
@@ -592,9 +712,6 @@ def retrieve_evaluations(database_name, model_id):
     except SQLAlchemyError as e:
         print(f"An error occurred while retrieving the model {model_id} eval history in {database_name}.")
         print(str(e))
-
-def store_parameters(database_name, model_id, parameters):
-    pass
 
 def retrieve_parameters(database_name, model_id):
     """
@@ -1076,3 +1193,144 @@ def ready_export(database_name, df_id):
         print(str(e))
         return False
 
+def change_model_value(database_name, column_name, new_value, id):
+    """
+    Change the value of a column in the table 'models' in a PostgreSQL database.
+
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - column_name (str): The name of the column.
+    - new_value: The new value of the column.
+    - id: The ID of the row to update.
+
+    Returns:
+    - success (bool): True if the value was changed successfully, False otherwise.
+    """
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Store the user in the database
+        with engine.connect() as connection:
+
+            # Update the value in the table
+            query = text(f"""
+                        UPDATE models
+                        SET 
+                        {column_name} = :new_value
+                        WHERE model_id = :id
+                        """)
+            
+            params = {'new_value': new_value, 'id': id}
+
+            connection.execute(query, params)
+            connection.commit()
+            return True #value changed successfully
+
+    except SQLAlchemyError as e:
+        print(f"An error occurred while changing the value of {column_name} in model {id} in {database_name}.")
+        print(str(e))
+        return False #value not changed
+
+def deactivate_all_models(database_name):
+    """
+    Deactivate all models in the 'models' table in a PostgreSQL database.
+
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+
+    Returns:
+    - success (bool): True if the models were deactivated successfully, False otherwise.
+    """
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Store the user in the database
+        with engine.connect() as connection:
+
+            # Update the value in the table
+            query = text(f"""
+                        UPDATE models
+                        SET 
+                        is_active = FALSE
+                        """)
+            
+            connection.execute(query)
+            connection.commit()
+            return True #models deactivated successfully
+
+    except SQLAlchemyError as e:
+        print(f"An error occurred while deactivating all models in {database_name}.")
+        print(str(e))
+        return False #models not deactivated
+
+def set_active_model(database_name, model_id):
+    """
+    Set the active model in the 'models' table in a PostgreSQL database.
+
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - model_id (int): The ID of the active model.
+
+    Returns:
+    - success (bool): True if the active model was set successfully, False otherwise.
+    """
+
+    if deactivate_all_models(database_name):
+
+        try:
+            # Create a connection to PostgreSQL database
+            engine = create_engine(connection_link(database_name))
+
+            with engine.connect() as connection:
+
+                # Update the value in the table
+                query = text(f"""
+                            UPDATE models
+                            SET 
+                            is_active = TRUE
+                            WHERE model_id = :model_id
+                            """)
+                
+                params = {'model_id': model_id}
+    
+                connection.execute(query, params)
+                connection.commit()
+
+                return True #active model set successfully
+
+        except SQLAlchemyError as e:
+            print(f"An error occurred while setting the active model in {database_name}.")
+            print(str(e))
+            return False #active model not set
+    else:
+        return False
+    
+def set_model_trained(database_name, model_id):
+
+    try:
+            # Create a connection to PostgreSQL database
+            engine = create_engine(connection_link(database_name))
+
+            with engine.connect() as connection:
+
+                # Update the value in the table
+                query = text(f"""
+                            UPDATE models
+                            SET 
+                            is_trained = TRUE
+                            WHERE model_id = :model_id
+                            """)
+                
+                params = {'model_id': model_id}
+    
+                connection.execute(query, params)
+                connection.commit()
+
+                return True # set successfully
+
+    except SQLAlchemyError as e:
+            print(f"An error occurred while setting trained in model in {database_name}.")
+            print(str(e))
+            return False # not set

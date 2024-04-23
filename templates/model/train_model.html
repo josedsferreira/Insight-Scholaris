@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container">
+    <div class="body-con">
+
+        {% if list_df %}
+
+        <div>
+        <div id="form-title">
+            <h5>Treinar o modelo</h5>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li id="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <div id="clickable-table-box">
+
+            <!-- learning_rate -->
+            <div class="mb-3">
+                <label for="split" class="form-label">Percentagem de dados para teste</label>
+                <input type="number" class="form-control" id="split" name="split" placeholder="20" value="20" min="0" max="100" step="1">
+            </div>
+
+            <label class="form-label">Selecione um dataset para treinar o modelo</label>
+
+            <div id="inner-table-box">
+                <table class="table">
+                    <tr class="clickable-table-header">
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Criado em</th>
+                    </tr>
+                    {% for line in list_df %}
+                    {% if line['Tipo'] == "De treino" %}
+                        <tr class="clickable-tr" onclick="submitSplitAndDSForm('{{ loop.index }}');">
+                            <form id="form{{ loop.index }}" method="POST" action="{{ url_for('train_model') }}">
+                                <input type="hidden" name="id" value="{{ line['ID'] }}">
+                                <input type="hidden" id="hiddenSplit{{ loop.index }}" name="split">
+                                <td>{{ line['ID'] }}</td>
+                                <td>{{ line['Nome'] }}</td>
+                                <td>{{ line['Criado em'].strftime('%d-%m-%Y') }}</td>
+                            </form>
+                        </tr>
+                    {% endif %}
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        </div>
+
+        {% else %}
+            <!-- Não ha datasets para selecionar -->
+            <div id="form-title">
+                <h5>Não há datasets para selecionar</h5>
+            </div>
+            <a href="{{ url_for('import_ds') }}" class="btn btn-primary">Importar novo dataset</a>
+        {% endif %}
+
+    </div>
+</div>
+
+
+{% endblock %}

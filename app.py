@@ -2,6 +2,7 @@ import json
 from flask import Flask, flash, render_template, request, redirect, url_for, session, send_file
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from modules import database as mdb
+from modules import modeling
 import pandas as pd
 from dotenv import load_dotenv
 import os
@@ -299,9 +300,13 @@ def create_model():
 
 		if 'model_params' in session:
 			session.pop('model_params', None)
+		if 'model_info' in session:
+			session.pop('model_info', None)
+		session['model'] = {}
 		session['model_params'] = {}
-		session['model_params']['model_name'] = model_name
-		session['model_params']['model_type'] = "SVM" if model_type == "1" else "XGBoost" if model_type == "2" else "Random Forest"
+		session['model']['model_name'] = model_name
+		session['model']['model_type'] = "SVM" if model_type == "1" else "XGBoost" if model_type == "2" else "Random Forest"
+		session['model']['is_trained'] = "False"
 		
 		if model_type == "1": #SVM
 			if 'kernel' in request.form:
@@ -447,9 +452,41 @@ def create_xgb():
 	if model_params is None:
 		flash('Erro: Parâmetros do modelo não encontrados', 'error')
 		return render_template("model/create_xgb.html", user_type=current_user.user_type)
-
 	elif request.method == 'POST':
-		return render_template("model/create_xgb.html", user_type=current_user.user_type)
+		if 'learning_rate' in request.form:
+			learning_rate = float(request.form.get('learning_rate'))
+			session['model_params']['learning_rate'] = learning_rate
+		if 'n_estimators' in request.form:
+			n_estimators = request.form.get('n_estimators')
+			session['model_params']['n_estimators'] = int(n_estimators)
+		if 'max_depth' in request.form:
+			max_depth = request.form.get('max_depth')
+			session['model_params']['max_depth'] = int(max_depth)
+		if 'min_child_weight' in request.form:
+			min_child_weight = request.form.get('min_child_weight')
+			session['model_params']['min_child_weight'] = float(min_child_weight)
+		if 'gamma' in request.form:
+			gamma = request.form.get('gamma')
+			session['model_params']['gamma'] = float(gamma)
+		if 'subsample' in request.form:
+			subsample = request.form.get('subsample')
+			session['model_params']['subsample'] = float(subsample)
+
+		model = modeling.create_xgboost_model(session['model_params'])
+
+		model_id = mdb.store_model(database_name=db_name, model_name=session['model']['model_name'], model=model, model_type=2)
+		session['model']['active_model_id'] = model_id
+		session.modified = True  # This tells Flask to save the session
+		# since we are just changing a value thats not at the top level of the dictionary it wont know that it has changed
+		
+		if  not mdb.set_active_model(database_name=db_name, model_id=model_id):
+			flash('Erro ao ativar modelo', 'error')
+			return render_template("model/create_xgb.html", user_type=current_user.user_type)
+		else:
+			list_df = mdb.list_datasets(database_name=db_name)
+			if list_df is not None:
+				list_df = list_df.to_dict(orient='records')
+			return render_template("model/train_model.html", user_type=current_user.user_type, list_df=list_df)
 	elif request.method == 'GET':
 		return render_template("model/create_xgb.html", user_type=current_user.user_type)
 
@@ -459,10 +496,44 @@ def create_rf():
 	model_params = session.get('model_params', None) # if there is nothing in the session, return None
 	return render_template("model/create_rf.html", user_type=current_user.user_type)
 
+@app.route("/train_model", methods=['GET', 'POST'])
+@login_required
+def train_model():
+	list_df = mdb.list_datasets(database_name=db_name)
+	if list_df is not None:
+		list_df = list_df.to_dict(orient='records')
+
+	if request.method == 'POST' and 'split' in request.form and 'id' in request.form:
+		id = request.form.get('id')
+		dataset = mdb.retrieve_dataset(database_name=db_name, df_id=id, decode=False)
+		split = int(request.form.get('split')) / 100 # convert to percentage
+		model_id = session['model']['active_model_id']
+		model = mdb.retrieve_model(database_name=db_name, model_id=model_id)
+
+		if model is not None:
+			if modeling.train_model(database_name=db_name, model=model, model_id=model_id, dataset=dataset, split=split):
+				flash('Modelo treinado com sucesso', 'info')
+				return render_template("teste.html", user_type=current_user.user_type)
+			else:
+				flash('Erro ao treinar modelo', 'error')
+				return render_template("teste.html", user_type=current_user.user_type)
+		else:
+			flash('Erro ao carregar modelo', 'error')
+			return render_template("teste.html", user_type=current_user.user_type)
+	
+	elif request.method == 'GET':
+		return render_template("model/train_model.html", user_type=current_user.user_type, list_df=list_df)
+
 @app.route("/model_info", methods=['GET'])
 @login_required
 def model_info():
 	return render_template("model/model_info.html", user_type=current_user.user_type)
+
+
+
+
+
+
 
 # ============ MAIN ============
 def main():

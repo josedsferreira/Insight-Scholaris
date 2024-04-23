@@ -55,7 +55,6 @@ if (algoTypeElement) {
 }
 
 
-
 /* show advanced options button and the basic options only when kernel is selected */
 /* document.getElementById('kernel').addEventListener('change', function() {
 
@@ -143,7 +142,38 @@ if (toggleAdvancedSVM) {
 }
 
 
+/* Toggle advanced XGB options */
+toggleAdvancedXGB = document.getElementById('toggle-advanced-xgb-options');
+if (toggleAdvancedXGB) {
+    toggleAdvancedXGB.addEventListener('click', function() {
+    
+        // get the options div
+        const advanced_Options = document.getElementById('advanced-XGB-options');
 
+        // Select all form elements inside the div
+        var formElements = advanced_Options.querySelectorAll('input, select, textarea, button');
+
+        // show or hide the advanced options
+        if (advanced_Options.style.display === 'none') {
+            advanced_Options.style.display = 'block';
+            this.textContent = 'Esconder opções avançadas';
+
+            // Loop through the form elements and turn them on
+            formElements.forEach(function(element) {
+                element.disabled = false;
+            });
+
+        } else {
+            advanced_Options.style.display = 'none';
+            this.textContent = 'Ver opções avançadas';
+
+            // Loop through the form elements and disable them
+            formElements.forEach(function(element) {
+                element.disabled = true;
+            });
+        }
+    });
+}
 
 
 /* Show custom gamma option */
@@ -155,6 +185,8 @@ function disableGammaInput() {
     document.getElementById('custom-gamma').disabled = true;
     document.getElementById('custom-gamma').style.display = 'none';
 }
+
+
 /* Show custom max iter option */
 function enableMaxIterInput() {
     document.getElementById('max-iter-custom').disabled = false;
@@ -164,6 +196,8 @@ function disableMaxIterInput() {
     document.getElementById('max-iter-custom').disabled = true;
     document.getElementById('max-iter-custom').style.display = 'none';
 }
+
+
 /* Show or hide custom random_state */
 var randomStateElements = document.getElementsByName('random_state');
 var randomStateValueElement = document.getElementById('random-state-value');
@@ -176,6 +210,7 @@ if (randomStateElements.length > 0 && randomStateValueElement) {
     });
 }
 
+
 /* Hide or show Random State div */
 var probabilityElements = document.getElementsByName('probability');
 var randomStateDiv = document.getElementById('random-state-div');
@@ -187,6 +222,36 @@ if (probabilityElements.length > 0 && randomStateDiv) {
         });
     });
 }
+
+
+/* Submit Form with split and dataset */
+function submitSplitAndDSForm(formId) {
+    // Get the value of the split input
+    var split = document.getElementById('split').value;
+
+    // Set the value of the hidden split input in the form
+    document.getElementById('hiddenSplit' + formId).value = split;
+
+    // Submit the form
+    document.getElementById('form' + formId).submit();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

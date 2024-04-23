@@ -23,10 +23,10 @@ tipo 1 - de treino, usa todas as colunas
 tipo 2 - por prever, não usa coluna final_result
 tipo 3 - já previsto, usa todas as colunas (se calhar este tipo não é necessário)
 */
-/* Versao anterior so com integers */
-/* create TABLE data (
+/* Versao so com integers */
+create TABLE data (
     data_id SERIAL PRIMARY KEY,
-    dataframe_id INTEGER REFERENCES dataframes(dataframe_id),
+    dataframe_id INTEGER REFERENCES dataframes(df_id),
     code_module INTEGER,
     code_presentation INTEGER,
     id_student INTEGER,
@@ -39,7 +39,8 @@ tipo 3 - já previsto, usa todas as colunas (se calhar este tipo não é necess�
     studied_credits INTEGER,
     disability INTEGER,
     final_result INTEGER
-); */
+);
+/* Versão com varchars */
 create TABLE data (
     data_id SERIAL PRIMARY KEY,
     dataframe_id INTEGER REFERENCES dataframes(df_id),
@@ -63,6 +64,8 @@ CREATE Table models (
     model_id SERIAL PRIMARY KEY,
     model_name VARCHAR(255),
     model_type integer, /* 1-SVM, 2-XGB, 3-RF*/
+    is_trained BOOLEAN DEFAULT false,
+    is_active BOOLEAN DEFAULT false,
     model_file_name VARCHAR(255),
     parameters JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
