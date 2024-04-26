@@ -13,6 +13,12 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
                 <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('parameters') }}">Parametros</a>
+                </li>
+
+                <div class="vr"></div>
+
+                <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('evaluation') }}">Avaliação</a>
                 </li>
 
@@ -35,21 +41,8 @@
     <div style="display: flex; justify-content: center;">
 
         <div style="margin-top: 40px;">
-            <div>
-                <h4>Modelo: {{ model_info["model_name"][0] }}</h4>
-                {% if model_info["model_type"][0] == 1 or model_info["model_type"][0] == "1" %}
-                <p><strong>Algoritmo: </strong>Support Vector Machines</p>
-                {% elif model_info["model_type"][0] == 2 or model_info["model_type"][0] == "2" %}
-                <p><strong>Algoritmo: </strong>XGBoost</p>
-                {% elif model_info["model_type"][0] == 3 or model_info["model_type"][0] == "3" %}
-                <p><strong>Algoritmo: </strong>Random Forest</p>
-                {% else %}
-                <p><strong>Algoritmo: </strong>Unknown</p>
-                {% endif %}
-                <p><strong>F1 Score: </strong>{{ f1_score | round(2) }}</p>
-            </div>
-
-            <h6>Parâmetros do modelo</h6>
+            <h5>Parâmetros do modelo</h5>
+        
             <div class="mb-3">
                 {% for key, value in parameters.items() %}
                     {% if value is not none %}
@@ -71,7 +64,6 @@
                     {% endif %}
                 {% endfor %}
             </div>
-            
         </div>
 
     </div>

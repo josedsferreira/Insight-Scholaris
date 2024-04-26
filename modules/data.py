@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 column_names = os.getenv('COLUMN_NAMES').split(',')
+dummies_col_names = os.getenv('DUMMIES_COL_NAMES').split(',')
 
 def clean_data(df):
     """
@@ -278,3 +279,21 @@ def create_dataframe_info(df):
     info['unknowns'] = int((df == "0").sum().sum())
 
     return info
+
+def dummies_completer(df):
+    """
+    Completes the get_dummies() process on the given DataFrame adding columns for which there was no value in the dataframe.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame to complete the get_dummies() process on.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with the get_dummies() process completed.
+    """
+
+    for column_name in dummies_col_names:
+        if column_name not in df.columns:
+            df[column_name] = 0
+
+    return df
+

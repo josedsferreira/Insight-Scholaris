@@ -35,25 +35,12 @@
     <div style="display: flex; justify-content: center;">
 
         <div style="margin-top: 40px;">
-            <div>
-                <h4>Modelo: {{ model_info["model_name"][0] }}</h4>
-                {% if model_info["model_type"][0] == 1 or model_info["model_type"][0] == "1" %}
-                <p><strong>Algoritmo: </strong>Support Vector Machines</p>
-                {% elif model_info["model_type"][0] == 2 or model_info["model_type"][0] == "2" %}
-                <p><strong>Algoritmo: </strong>XGBoost</p>
-                {% elif model_info["model_type"][0] == 3 or model_info["model_type"][0] == "3" %}
-                <p><strong>Algoritmo: </strong>Random Forest</p>
-                {% else %}
-                <p><strong>Algoritmo: </strong>Unknown</p>
-                {% endif %}
-                <p><strong>F1 Score: </strong>{{ f1_score | round(2) }}</p>
-            </div>
-
-            <h6>Parâmetros do modelo</h6>
+            <h6>Avaliação detalhada</h6>
+        
             <div class="mb-3">
-                {% for key, value in parameters.items() %}
+                {% for key, value in full_eval.items() %}
                     {% if value is not none %}
-                        {% if loop.index0 % 2 == 0 %}
+                        {% if loop.index0 % 3 == 0 %}
                             {% if loop.index0 != 0 %}
                                 </ul>
                             {% endif %}
@@ -62,16 +49,15 @@
                         <li class="list-group-item" style="width: 220px;">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold">{{ key }}</div>
-                                {{ value }}
+                                {{ value | round(2) }}
                             </div>
                         </li>
-                        {% if loop.index0 % 2 == 1 or loop.last %}
+                        {% if loop.index0 % 3 == 2 or loop.last %}
                             </ul>
                         {% endif %}
                     {% endif %}
                 {% endfor %}
             </div>
-            
         </div>
 
     </div>

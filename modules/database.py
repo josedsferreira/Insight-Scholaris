@@ -425,7 +425,7 @@ def update_model_file(database_name, model_id, model):
 
     try:
         # first retrieve the model info
-        model_info = retireve_model_info(database_name, model_id)
+        model_info = retrieve_model_info(database_name, model_id)
         model_name = model_info['model_name'].values[0]
         save_model_file(model, model_name)
         return True
@@ -434,7 +434,7 @@ def update_model_file(database_name, model_id, model):
         print(str(e))
         return False
 
-def retireve_model_info(database_name, model_id):
+def retrieve_model_info(database_name, model_id):
     """
     retrieves a model from a PostgreSQL database.
 
@@ -459,7 +459,7 @@ def retireve_model_info(database_name, model_id):
         WHERE model_id = :model_id
         """)
 
-        params = {'model_id': model_id}
+        params = {'model_id': int(model_id)}
 
         # retrieve the dataframe with the model info
         model_info = pd.read_sql(query, engine, params=params)
@@ -691,6 +691,9 @@ def retrieve_evaluations(database_name, model_id):
     Parameters:
     - database_name (str): The name of the PostgreSQL database.
     - model_id (int): The ID of the model whose evaluations are to be retrieved.
+
+    Returns:
+    - evaluations (pandas.DataFrame): The dataframe containing all evaluations of the model.
     """
 
     try:
@@ -698,53 +701,21 @@ def retrieve_evaluations(database_name, model_id):
         engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select rows from the model table
-        query = f"""
+        query = text("""
         SELECT *
         FROM evaluations
-        WHERE model_id = {model_id}
-        """
+        WHERE model_id = :model_id
+        """)
+
+        params = {'model_id': int(model_id)}
 
         # retrieve the dataframe with the model info
-        evaluations = pd.read_sql(query, engine)
+        evaluations = pd.read_sql(query, engine, params=params)
 
         return evaluations
     
     except SQLAlchemyError as e:
         print(f"An error occurred while retrieving the model {model_id} eval history in {database_name}.")
-        print(str(e))
-
-def retrieve_parameters(database_name, model_id):
-    """
-    retrieves the parameters of a model from a PostgreSQL database.
-    
-    Parameters:
-    - database_name (str): The name of the PostgreSQL database.
-    - model_id (int): The ID of the model whose parameters are to be retrieved.
-
-    Returns:
-    - parameters (JSON): JSON containing the parameters of the model.
-    """
-    try:
-        # Create a connection to PostgreSQL database
-        engine = create_engine(connection_link(database_name))
-
-        # Define the SQL query to select rows from the model table
-        query = f"""
-        SELECT parameters
-        FROM models
-        WHERE model_id = {model_id}
-        """
-
-        # Execute the SQL query and fetch the result
-        result = engine.execute(query)
-
-        # Retrieve the parameters as a JSON
-        parameters = json.loads(result.fetchone()[0])
-
-        return parameters
-    
-    except SQLAlchemyError as e:
-        print(f"An error occurred while retrieving the model {model_id} parameters in {database_name}.")
         print(str(e))
 
 def create_user(full_name, email, num_id, type, database_name):
@@ -1307,6 +1278,72 @@ def set_active_model(database_name, model_id):
     else:
         return False
     
+def retrieve_active_model_info(database_name):
+    """
+    retrieves info about the active model, including evaluations from a PostgreSQL database.
+    
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+
+    Returns:
+    - model_info (pandas.DataFrame): The dataframe containing all info of the active model.
+    model_info has the following columns:
+
+    0-'model_id'
+    1-'model_name'
+    2-'model_type'
+    3-'is_trained'
+    4-'is_active'
+    5-'model_file_name'
+    6-'parameters'
+    7-'created_at'
+    8-'evaluation_id'
+    9-'fp'
+    10-'fn'
+    11-'tp'
+    12-'tn'
+    """
+
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Define the SQL query to select rows from the model table
+        query = text("""
+        SELECT *
+        FROM models
+        WHERE is_active = TRUE
+        """)
+
+        # retrieve the dataframe with the model info
+        active_model_line = pd.read_sql(query, engine)
+
+        if not active_model_line.empty:
+            model_id = active_model_line['model_id'].values[0]
+            model_info = retrieve_model_info(database_name, model_id)
+            evaluations = retrieve_evaluations(database_name, model_id)
+            # Drop the 'created_at' column from the evaluations dataframe so it wont be duplicated
+            evaluations = evaluations.drop(columns=['created_at'])
+            # Join both dataframes into one
+            model_info = pd.merge(model_info, evaluations, on='model_id', how='inner')
+            # Select the desired columns
+            model_info = model_info[['model_id', \
+                                     'model_name', \
+                                        'model_type', \
+                                            'is_trained', \
+                                                'is_active', \
+                                                    'model_file_name', \
+                                                        'parameters', \
+                                                            'created_at', \
+                                                                'evaluation_id', \
+                                                                    'fp', 'fn', 'tp', 'tn']]
+            return model_info
+        else:
+            return None
+    except SQLAlchemyError as e:
+            print(f"An error occurred while retrieving the active model info from {database_name}.")
+            print(str(e))
+
 def set_model_trained(database_name, model_id):
 
     try:

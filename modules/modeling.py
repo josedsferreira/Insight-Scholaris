@@ -7,6 +7,9 @@ from sklearn.model_selection import train_test_split
 from modules import data
 from modules import database
 
+load_dotenv()
+categorical_col_names = os.getenv('CATEGORICAL_COLUMN_NAMES').split(',')
+
 def create_lsvm_model(model_params):
     """
     Create a Linear Support Vector Machine model
@@ -58,14 +61,16 @@ def train_model(database_name, model, model_id, dataset, split):
         X = dataset.drop(['final_result'], axis=1)
         print("1-target droped from dataset")
 
-        # Check if get_dummies() has already been applied
-        # should not be needed
-        if any(X.dtypes == 'object') or any(X.dtypes == 'category'):
-            X = pd.get_dummies(X)
-            print("2-get_dummies() applied to dataset")
+        # One Hot Encoding
+        X = pd.get_dummies(X, columns=categorical_col_names)
+        print("2-get_dummies() applied to dataset")
+
+        # Completes the get_dummies() process on the given DataFrame adding columns for which there was no value in the dataframe.
+        X = data.dummies_completer(X)
+        print("2.1-dummies_completer() applied to dataset")
 
         # y has the target column and is converted to binary
-        y = dataset['final_result'] #.map({'Pass': 1, 'Fail': 0}) # mapping ja nao deve ser necessario
+        y = dataset['final_result']
         print("3-target column extracted from dataset into y")
 
         # Split the data into training and testing sets
@@ -107,3 +112,91 @@ def train_model(database_name, model, model_id, dataset, split):
     except Exception as e:
         print(f"An error occurred: {e}")
         return False
+
+def get_f1_score(database_name, model_id):
+    """
+    Get the F1 score of a model
+    
+    Parameters:
+    database_name (str): The name of the database
+    model_id (int): The model ID
+    
+    Returns:
+    float: The F1 score of the model
+    """
+    try:
+        # Get the evaluation from the database
+        evaluation = database.retrieve_evaluations(database_name, model_id)
+
+        # Calculate the F1 score
+        tn = evaluation['tn'].values[0]
+        fp = evaluation['fp'].values[0]
+        fn = evaluation['fn'].values[0]
+        tp = evaluation['tp'].values[0]
+
+        f1_score = tp / (tp + 0.5 * (fp + fn))
+
+        return f1_score
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+    
+def create_full_eval(database_name, model_id, pt=False):
+    """
+    Create a full evaluation of a model
+    
+    Parameters:
+    database_name (str): The name of the database
+    
+    Returns:
+    dict: A dictionary containing the full evaluation of the model
+    """
+
+    full_eval = {}
+
+    try:
+        # Get the evaluation from the database
+        evaluation = database.retrieve_evaluations(database_name, model_id)
+
+        # Calculate the F1 score
+        tn = evaluation['tn'].values[0]
+        fp = evaluation['fp'].values[0]
+        fn = evaluation['fn'].values[0]
+        tp = evaluation['tp'].values[0]
+
+        f1_score = tp / (tp + 0.5 * (fp + fn))
+        accuracy = (tp + tn) / (tp + tn + fp + fn)
+        precision = tp / (tp + fp)
+        recall = tp / (tp + fn)
+        specificity = tn / (tn + fp)
+        fall_out = fp / (fp + tn)
+        false_discovery_rate = fp / (fp + tp)
+        false_negative_rate = fn / (fn + tp)
+        balanced_accuracy = (recall + specificity) / 2
+
+        if pt:
+            full_eval['Pontuação F1'] = f1_score
+            full_eval['Exatidão'] = accuracy
+            full_eval['Precisão'] = precision
+            full_eval['Sensibilidade'] = recall
+            full_eval['Especificidade'] = specificity
+            full_eval['Taxa de Falsos Positivos'] = fall_out
+            full_eval['Taxa de Falsa Descoberta'] = false_discovery_rate
+            full_eval['Taxa de Falsos Negativos'] = false_negative_rate
+            full_eval['Exatidão equilibrada'] = balanced_accuracy
+        else:
+            full_eval['F1 Score'] = f1_score
+            full_eval['Accuracy'] = accuracy
+            full_eval['Precision'] = precision
+            full_eval['Recall'] = recall
+            full_eval['Specificity'] = specificity
+            full_eval['Fallout'] = fall_out
+            full_eval['False Discovery Rate'] = false_discovery_rate
+            full_eval['False Negative Rate'] = false_negative_rate
+            full_eval['Ballanced Accuracy'] = balanced_accuracy
+
+        return full_eval
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None

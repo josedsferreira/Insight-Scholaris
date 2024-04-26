@@ -513,13 +513,13 @@ def train_model():
 		if model is not None:
 			if modeling.train_model(database_name=db_name, model=model, model_id=model_id, dataset=dataset, split=split):
 				flash('Modelo treinado com sucesso', 'info')
-				return render_template("teste.html", user_type=current_user.user_type)
+				return render_template("model/model_info.html", user_type=current_user.user_type)
 			else:
 				flash('Erro ao treinar modelo', 'error')
-				return render_template("teste.html", user_type=current_user.user_type)
+				return render_template("model/train_model.html", user_type=current_user.user_type)
 		else:
 			flash('Erro ao carregar modelo', 'error')
-			return render_template("teste.html", user_type=current_user.user_type)
+			return render_template("model/train_model.html", user_type=current_user.user_type)
 	
 	elif request.method == 'GET':
 		return render_template("model/train_model.html", user_type=current_user.user_type, list_df=list_df)
@@ -527,12 +527,36 @@ def train_model():
 @app.route("/model_info", methods=['GET'])
 @login_required
 def model_info():
-	return render_template("model/model_info.html", user_type=current_user.user_type)
+	model_info = mdb.retrieve_active_model_info(database_name=db_name)
+	#print(model_info.columns)
+	parameters = model_info['parameters'].values[0]
+	f1_score = modeling.get_f1_score(database_name=db_name, model_id=model_info['model_id'].values[0])
+	return render_template("model/model_info.html", user_type=current_user.user_type, model_info=model_info, parameters=parameters, f1_score=f1_score)
+
+@app.route("/parameters", methods=['GET'])
+@login_required
+def parameters():
+	parameters = mdb.retrieve_active_model_info(database_name=db_name)['parameters'].values[0]
+	return render_template("model/parameters.html", user_type=current_user.user_type, parameters=parameters)
+
+@app.route("/evaluation", methods=['GET'])
+@login_required
+def evaluation():
+	model_info = mdb.retrieve_active_model_info(database_name=db_name)
+	full_eval = modeling.create_full_eval(database_name=db_name, model_id=model_info['model_id'].values[0], pt=True)
+	return render_template("model/evaluation.html", user_type=current_user.user_type, full_eval=full_eval)
+
+@app.route("/algo", methods=['GET'])
+@login_required
+def algo():
+	return render_template("model/algo.html", user_type=current_user.user_type)
 
 
-
-
-
+# ============ PREDICT ============
+@app.route("/new_prediction", methods=['GET', 'POST'])
+@login_required
+def new_prediction():
+	return render_template("predict/new_prediction.html", user_type=current_user.user_type)
 
 
 # ============ MAIN ============
