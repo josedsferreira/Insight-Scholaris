@@ -1,3 +1,4 @@
+from pickle import load
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 import os
@@ -7,6 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 column_names = os.getenv('COLUMN_NAMES').split(',')
 dummies_col_names = os.getenv('DUMMIES_COL_NAMES').split(',')
+categorical_col_names = os.getenv('CATEGORICAL_COLUMN_NAMES').split(',')
 
 def clean_data(df):
     """
@@ -295,5 +297,44 @@ def dummies_completer(df):
         if column_name not in df.columns:
             df[column_name] = 0
 
+    dummies_col_names.append("studied_credits")
+    dummies_col_names.append("num_of_prev_attempts")
+
+    df = df.reindex(columns=dummies_col_names)
+
     return df
 
+
+from sklearn.preprocessing import OneHotEncoder
+from joblib import dump
+
+def create_encoder(df):
+    # Create a OneHotEncoder
+    encoder = OneHotEncoder(handle_unknown='ignore')
+
+    # Fit the encoder using the larger dataset
+    encoder.fit(df[categorical_col_names])
+
+    # Save the encoder to a file
+    dump(encoder, 'encoder.joblib')
+
+    return encoder
+
+    """
+    to use
+
+    # Create an encoder using the larger dataset
+    encoder = create_encoder(larger_df)
+
+    # Transform the larger dataset
+    larger_df_encoded = pd.DataFrame(encoder.transform(larger_df[categorical_col_names]))
+
+    # Transform the smaller dataset
+    smaller_df_encoded = pd.DataFrame(encoder.transform(smaller_df[categorical_col_names]))
+    """
+
+def load_encoder():
+    # Load the encoder from a file
+    encoder = load('encoder.joblib')
+
+    return encoder

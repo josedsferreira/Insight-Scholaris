@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container">
+
+    {% if pred_ds_info %}
+    <div id="ds-info">
+        <h5><strong>{{ pred_ds_info[1] }}</strong></h5> <!-- nome -->
+        <p><strong>Tipo:</strong> {{ pred_ds_info[2] }}</p>
+        <p><strong>Numero de linhas:</strong> {{ pred_ds_info[4] }}</p>
+        <p><strong>Numero de colunas:</strong> {{ pred_ds_info[3] }}</p>
+        <p><strong>Numero de valores desconhecidos:</strong> {{ pred_ds_info[5] }}</p>
+    </div>
+    {% endif %}
+    
+    {% if pred_head %}
+    <h6>Primeiras 5 linhas:</h6>
+    <div id="ds-head">
+        {{ pred_head|safe }}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

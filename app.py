@@ -209,7 +209,8 @@ def import_ds():
 			print(e)
 			flash('Erro ao carregar ficheiro', 'error')
 			return render_template("datasets/import_ds.html", user_type=current_user.user_type)
-		if mdb.store_dataset(db_name=db_name, df_name=ds_name, df=df, df_type=ds_type):
+		result, id= mdb.store_dataset(db_name=db_name, df_name=ds_name, df=df, df_type=ds_type)
+		if result:
 			flash('Ficheiro carregado com sucesso', 'info')
 			return render_template("datasets/import_ds.html", user_type=current_user.user_type)
 		else:
@@ -240,7 +241,7 @@ def ds_menu():
 			flash('Selecione um dataset', 'error')
 			return render_template("datasets/select_ds.html", user_type=current_user.user_type)
 		ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=ds_id)
-		ds_head = mdb.retireve_head(database_name=db_name, df_id=ds_id, n_rows=5)
+		ds_head = mdb.retrieve_head(database_name=db_name, df_id=ds_id, n_rows=5)
 		ds_head = ds_head.to_html(classes='table')
 		return render_template("datasets/ds_menu.html", \
 						 user_type=current_user.user_type, \
@@ -265,23 +266,6 @@ def export_ds():
 	flash('Ocorreu um erro', 'error')
 	redirect(url_for('select_ds'))
 
-""" @app.route("/all_data", methods=['GET', 'POST'])
-@login_required
-def all_data():
-	if "ds_id" in request.form:
-		ds_id = request.form.get("ds_id")
-		ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=ds_id)
-		ds = mdb.retrieve_dataset(database_name=db_name, df_id=ds_id)
-		ds = ds.to_html(classes='table')
-		return render_template("datasets/all_data.html", user_type=current_user.user_type, ds=ds, ds_info=ds_info)
-	flash('Ocorreu um erro', 'error')
-	redirect(url_for('select_ds')) """
-
-# ============ MENU PREVER ============
-""" @app.route("/predict_menu")
-@login_required
-def predict_menu():
-	return render_template("predict_menu.html", user_type=current_user.user_type) """
 
 
 
@@ -512,8 +496,11 @@ def train_model():
 
 		if model is not None:
 			if modeling.train_model(database_name=db_name, model=model, model_id=model_id, dataset=dataset, split=split):
-				flash('Modelo treinado com sucesso', 'info')
-				return render_template("model/model_info.html", user_type=current_user.user_type)
+				#flash('Modelo treinado com sucesso', 'info')
+				model_info = mdb.retrieve_active_model_info(database_name=db_name)
+				parameters = model_info['parameters'].values[0]
+				f1_score = modeling.get_f1_score(database_name=db_name, model_id=model_info['model_id'].values[0])
+				return render_template("model/model_info.html", user_type=current_user.user_type, model_info=model_info, parameters=parameters, f1_score=f1_score)
 			else:
 				flash('Erro ao treinar modelo', 'error')
 				return render_template("model/train_model.html", user_type=current_user.user_type)
@@ -556,7 +543,27 @@ def algo():
 @app.route("/new_prediction", methods=['GET', 'POST'])
 @login_required
 def new_prediction():
-	return render_template("predict/new_prediction.html", user_type=current_user.user_type)
+	list_df = mdb.list_datasets(database_name=db_name)
+	if list_df is not None:
+		list_df = list_df.to_dict(orient='records')
+
+	if request.method == 'POST' and 'id' in request.form:
+		id = request.form.get("id")
+		df_name = mdb.retrieve_dataset_info(database_name=db_name, df_id=id)[1]
+		df = mdb.retrieve_dataset(database_name=db_name, df_id=id, decode=False)
+		prediction, pred_id = modeling.predict(database_name=db_name, df=df, df_name=df_name)
+		ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=pred_id)
+		df_head = mdb.retrieve_head(database_name=db_name, df_id=pred_id, n_rows=5)
+		df_head = df_head.to_html(classes='table')
+		return render_template("predict/prediction_menu.html", \
+						 user_type=current_user.user_type, \
+							df_head=df_head, \
+								ds_info=ds_info)
+	elif request.method == 'POST':
+		flash('Selecione um dataset', 'error')
+		return render_template("predict/new_prediction.html", user_type=current_user.user_type, list_df=list_df)
+	else:
+		return render_template("predict/new_prediction.html", user_type=current_user.user_type, list_df=list_df)
 
 
 # ============ MAIN ============

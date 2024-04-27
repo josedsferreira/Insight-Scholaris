@@ -53,7 +53,10 @@
             <div id="form-title">
                 <h5>Não há datasets para selecionar</h5>
             </div>
-            <a href="{{ url_for('import_ds') }}" class="btn btn-primary">Importar novo dataset</a>
+            <div>
+                <a href="{{ url_for('import_ds') }}" class="btn btn-primary">Importar novo dataset</a>
+            </div>
+            
         {% endif %}
 
     </div>

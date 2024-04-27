@@ -200,3 +200,50 @@ def create_full_eval(database_name, model_id, pt=False):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+    
+def predict(database_name, df, df_name):
+    """
+    Predict the target value of a given dataset
+    
+    Parameters:
+    database_name (str): The name of the database
+    df (pandas dataframe): A dataframe containing the dataset
+    df_name (str): The name of the dataset
+    
+    Returns:
+    list: A list containing the predicted target values
+    """
+    try:
+        # Load the model
+        model_id = int(database.retrieve_active_model_info(database_name)['model_id'][0])
+        model = database.retrieve_model(database_name, model_id)
+        print("0-model loaded")
+        #print("model:", model)
+
+        # One Hot Encoding
+        df_coded = pd.get_dummies(df, columns=categorical_col_names)
+        print("1-get_dummies() applied to dataset")
+
+        # Completes the get_dummies() process on the given DataFrame adding columns for which there was no value in the dataframe.
+        df_coded = data.dummies_completer(df_coded)
+        print("1.1-dummies_completer() applied to dataset")
+
+        # Predict the response for the dataset
+        y_pred = model.predict(df_coded)
+        print("2-model prediction completed")
+
+        # Add predictions as a new column to df
+        df['final_result'] = y_pred
+
+        # save the prediction in the database
+        result, df_id = database.store_dataset(db_name=database_name, df=df, df_type=3, df_name=df_name)
+        if result:
+            print("3-dataset stored in database")
+        else:
+            print("3- Error: dataset not stored in database")
+
+        return df, df_id
+    
+    except Exception as e:
+        print(f"An error occurred while making a prediction with model {model_id}: {e}")
+        return None

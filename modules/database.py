@@ -10,6 +10,7 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from modules import data
 import bcrypt
+import joblib
 
 def connection_link(database_name):
     """
@@ -37,21 +38,23 @@ def store_dataset(df, db_name, df_name, df_type):
     - df (pandas.DataFrame): The DataFrame to store.
     - db_name (str): The name of the database.
     - df_name (str): The name of the DataFrame.
-    - df_type (str): The type of the DataFrame.
+    - df_type (int): The type of the DataFrame. (1=Training, 2=To predict, 3=Prediction)
 
     Returns:
     - success (bool): True if the DataFrame was stored successfully, False otherwise.
+    - df_id (int): The ID of the stored DataFrame.
     """
     try:
         # Create a connection to PostgreSQL database
         engine = create_engine(connection_link(db_name))
 
         # Drop all rows from df that don't have a value for 'final_result' or that have NaN
-        df = df.dropna(subset=['final_result'])
+        if df_type == 1:
+            df = df.dropna(subset=['final_result'])
         
         #encode the dataframe if it is not encoded
         if not data.is_df_encoded(df):
-            print("The DataFrame is not encoded. Encoding it now...")
+            #print("The DataFrame is not encoded. Encoding it now...")
             df = data.encoder(df)
 
         # Store the dataframe in the database
@@ -79,11 +82,11 @@ def store_dataset(df, db_name, df_name, df_type):
             # Store the DataFrame in the data table
             df.to_sql('data', engine, if_exists='append', index=False)
 
-            return True
+            return True, df_id
     except SQLAlchemyError as e:
         print(f"An error occurred while storing the dataset {df_name} in {db_name}.")
         print(str(e))
-        return False
+        return False, None
 
     """
     other possible arguments for .to_sql:
@@ -208,7 +211,7 @@ def retrieve_dataset(database_name, df_id, decode=True):
         print(f"An error occurred while retrieving the dataset {df_id} from data table in {database_name}.")
         print(str(e))
 
-def retireve_head(database_name, df_id, n_rows):
+def retrieve_head(database_name, df_id, n_rows):
     """
     retrieves the first n rows of a dataset from a PostgreSQL database.
 
@@ -427,7 +430,8 @@ def update_model_file(database_name, model_id, model):
         # first retrieve the model info
         model_info = retrieve_model_info(database_name, model_id)
         model_name = model_info['model_name'].values[0]
-        save_model_file(model, model_name)
+        file_name = model_name + '_' + str(model_id) + '.pkl'
+        save_model_file(model, file_name)
         return True
     except SQLAlchemyError as e:
         print(f"An error occurred while updating the model file for id {model_id} .")
@@ -484,8 +488,10 @@ def save_model_file(model, file_name):
     # Combine the folder path and the filename
     file_path = os.path.join(folder_path, file_name)
 
-    with open(file_path, 'wb') as f:
-        pickle.dump(model, f)
+    joblib.dump(model, file_path)
+
+    """ with open(file_path, 'wb') as f:
+        pickle.dump(model, f) """
 
 def retrieve_model(database_name, model_id):
     """
@@ -531,8 +537,10 @@ def retrieve_model(database_name, model_id):
         model_file_path = os.path.join(folder_path, model_file_name)
 
         # Load the model from the file
-        with open(model_file_path, 'rb') as f:
-            model = pickle.load(f)
+        """ with open(model_file_path, 'rb') as f:
+            model = pickle.load(f) """
+
+        model = joblib.load(model_file_path)
 
         return model
     
