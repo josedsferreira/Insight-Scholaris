@@ -105,6 +105,15 @@ def retrieve_dataset_info(database_name, df_id):
 
     Returns:
     - df_info (pandas.DataFrame): The retrieved dataset as a pandas DataFrame.
+    Columns:
+    0- ID: The ID of the dataset.
+    1- Nome: The name of the dataset.
+    2- Tipo: The type of the dataset.
+    3- Numero de colunas: The number of columns in the dataset.
+    4- Numero de linhas: The number of rows in the dataset.
+    5- Numero de desconhecidos: The number of unknown values in the dataset.
+    6- Numero de valores em falta: The number of missing values in the dataset.
+    7- Criado em: The date the dataset was created.
 
     Raises:
     - SQLAlchemyError: If an error occurs while retrieving the dataset.

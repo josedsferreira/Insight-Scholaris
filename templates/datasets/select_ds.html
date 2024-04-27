@@ -3,9 +3,8 @@
 {% block body %}
 
 <div class="container">
+    {% if list_df %}
     <div class="body-con">
-
-        {% if list_df %}
 
         <div>
         <div id="form-title">
@@ -47,7 +46,7 @@
             </div>
         </div>
         </div>
-
+    </div>
         {% else %}
             <!-- Não ha datasets para selecionar -->
             <div id="form-title">
@@ -59,7 +58,7 @@
             
         {% endif %}
 
-    </div>
+    
 </div>
 
 

@@ -1,9 +1,10 @@
-from pickle import load
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 import os
 import json
 from dotenv import load_dotenv
+from sklearn.preprocessing import OneHotEncoder
+from joblib import dump, load
 
 load_dotenv()
 column_names = os.getenv('COLUMN_NAMES').split(',')
@@ -243,12 +244,6 @@ def is_df_encoded(df):
 
     return True
 
-def create_encoder(df):
-    pass
-
-def update_encoder(df):
-    pass
-
 def create_dataframe_info(df):
     """
     Create a dictionary with information about the given DataFrame.
@@ -278,7 +273,7 @@ def create_dataframe_info(df):
         info[column + '_count'] = df.groupby(column).size().to_dict() """
 
     # Add the number of unknowns (0) in the DataFrame to the dictionary
-    info['unknowns'] = int((df == "0").sum().sum())
+    info['unknowns'] = int(((df == "0") | (df == 0)).sum().sum())
 
     return info
 
@@ -304,11 +299,17 @@ def dummies_completer(df):
 
     return df
 
+def create_oneHotEncoder_and_encode(df):
+    """
+    Create a OneHotEncoder and fit it to the given DataFrame and encode the DataFrame.
+    
+    Parameters:
+    df (pandas.DataFrame): The DataFrame to fit the encoder to and to encode.
+    
+    Returns:
+    df_encoded (pandas.DataFrame): The DataFrame with the categorical columns encoded.
+    """
 
-from sklearn.preprocessing import OneHotEncoder
-from joblib import dump
-
-def create_encoder(df):
     # Create a OneHotEncoder
     encoder = OneHotEncoder(handle_unknown='ignore')
 
@@ -316,25 +317,33 @@ def create_encoder(df):
     encoder.fit(df[categorical_col_names])
 
     # Save the encoder to a file
-    dump(encoder, 'encoder.joblib')
+    dump(encoder, 'OneHotEncoder.joblib')
 
-    return encoder
+    # Transform the DataFrame and convert the sparse matrix to a dense array
+    df_encoded = pd.DataFrame(encoder.transform(df[categorical_col_names]).toarray())
 
+    # Convert the data type of the columns to int
+    df_encoded = df_encoded.astype(int)
+
+    return df_encoded
+
+def oneHotEncode(df):
     """
-    to use
-
-    # Create an encoder using the larger dataset
-    encoder = create_encoder(larger_df)
-
-    # Transform the larger dataset
-    larger_df_encoded = pd.DataFrame(encoder.transform(larger_df[categorical_col_names]))
-
-    # Transform the smaller dataset
-    smaller_df_encoded = pd.DataFrame(encoder.transform(smaller_df[categorical_col_names]))
+    Encode the categorical columns in the given DataFrame using a pre-trained OneHotEncoder.
+    
+    Parameters:
+    df (pandas.DataFrame): The DataFrame to encode.
+    
+    Returns:
+    df_encoded (pandas.DataFrame): The DataFrame with the categorical columns encoded.
     """
-
-def load_encoder():
     # Load the encoder from a file
-    encoder = load('encoder.joblib')
+    encoder = load('OneHotEncoder.joblib')
 
-    return encoder
+    # Transform the DataFrame and convert the sparse matrix to a dense array
+    df_encoded = pd.DataFrame(encoder.transform(df[categorical_col_names]).toarray())
+
+    # Convert the data type of the columns to int
+    df_encoded = df_encoded.astype(int)
+
+    return df_encoded

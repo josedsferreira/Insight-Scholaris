@@ -61,13 +61,17 @@ def train_model(database_name, model, model_id, dataset, split):
         X = dataset.drop(['final_result'], axis=1)
         print("1-target droped from dataset")
 
-        # One Hot Encoding
+        """ # One Hot Encoding
         X = pd.get_dummies(X, columns=categorical_col_names)
         print("2-get_dummies() applied to dataset")
 
         # Completes the get_dummies() process on the given DataFrame adding columns for which there was no value in the dataframe.
         X = data.dummies_completer(X)
-        print("2.1-dummies_completer() applied to dataset")
+        print("2.1-dummies_completer() applied to dataset") """
+
+        X = data.create_oneHotEncoder_and_encode(X)
+        print("2-encoder created and encode applied to dataset")
+
 
         # y has the target column and is converted to binary
         y = dataset['final_result']
@@ -220,13 +224,16 @@ def predict(database_name, df, df_name):
         print("0-model loaded")
         #print("model:", model)
 
-        # One Hot Encoding
+        """ # One Hot Encoding
         df_coded = pd.get_dummies(df, columns=categorical_col_names)
         print("1-get_dummies() applied to dataset")
 
         # Completes the get_dummies() process on the given DataFrame adding columns for which there was no value in the dataframe.
         df_coded = data.dummies_completer(df_coded)
-        print("1.1-dummies_completer() applied to dataset")
+        print("1.1-dummies_completer() applied to dataset") """
+
+        df_coded = data.oneHotEncode(df)
+        print("1-One Hot Encode applied to dataset")
 
         # Predict the response for the dataset
         y_pred = model.predict(df_coded)
@@ -247,3 +254,4 @@ def predict(database_name, df, df_name):
     except Exception as e:
         print(f"An error occurred while making a prediction with model {model_id}: {e}")
         return None
+

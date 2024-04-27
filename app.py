@@ -503,7 +503,7 @@ def train_model():
 				return render_template("model/model_info.html", user_type=current_user.user_type, model_info=model_info, parameters=parameters, f1_score=f1_score)
 			else:
 				flash('Erro ao treinar modelo', 'error')
-				return render_template("model/train_model.html", user_type=current_user.user_type)
+				return render_template("teste.html", user_type=current_user.user_type)
 		else:
 			flash('Erro ao carregar modelo', 'error')
 			return render_template("model/train_model.html", user_type=current_user.user_type)
@@ -517,6 +517,7 @@ def model_info():
 	model_info = mdb.retrieve_active_model_info(database_name=db_name)
 	#print(model_info.columns)
 	parameters = model_info['parameters'].values[0]
+	parameters = {k: v for k, v in parameters.items() if v is not None} #remove None's
 	f1_score = modeling.get_f1_score(database_name=db_name, model_id=model_info['model_id'].values[0])
 	return render_template("model/model_info.html", user_type=current_user.user_type, model_info=model_info, parameters=parameters, f1_score=f1_score)
 
@@ -555,7 +556,7 @@ def new_prediction():
 		ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=pred_id)
 		df_head = mdb.retrieve_head(database_name=db_name, df_id=pred_id, n_rows=5)
 		df_head = df_head.to_html(classes='table')
-		return render_template("predict/prediction_menu.html", \
+		return render_template("predict/ds_menu.html", \
 						 user_type=current_user.user_type, \
 							df_head=df_head, \
 								ds_info=ds_info)
