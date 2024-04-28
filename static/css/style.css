@@ -79,6 +79,18 @@
     align-items: center;
     height: 100vh;
 }
+.body-con-2navs {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 82vh;
+}
+.body-con-1navs {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 91vh;
+}
 .body-con-modelform {
     display: flex;
     justify-content: center;

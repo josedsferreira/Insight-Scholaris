@@ -266,6 +266,58 @@ def export_ds():
 	flash('Ocorreu um erro', 'error')
 	redirect(url_for('select_ds'))
 
+@app.route("/alter_ds", methods=['GET' ,'POST'])
+@login_required
+def alter_ds():
+	if request.method == 'POST' and 'ds_id' in request.form and 'action' not in request.form:
+		ds_id = request.form.get('ds_id')
+		ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=ds_id)
+		return render_template("datasets/alter_ds.html", \
+						 user_type=current_user.user_type, \
+							ds_info=ds_info)
+	elif request.method == 'POST' and 'id' in request.form and 'action' in request.form:
+		ds_id = request.form.get('id')
+		action = request.form.get('action')
+		if action == 'deactivate':
+			if mdb.deactivate_unknown_lines(database_name=db_name, df_id=ds_id):
+				flash('Linhas eliminado com sucesso', 'info')
+				ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=ds_id)
+				ds_head = mdb.retrieve_head(database_name=db_name, df_id=ds_id, n_rows=5)
+				ds_head = ds_head.to_html(classes='table')
+				return render_template("datasets/ds_menu.html", \
+								user_type=current_user.user_type, \
+									ds_info=ds_info, \
+										ds_head=ds_head)
+			else:
+				flash('Erro ao eliminar linhas', 'error')
+				ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=ds_id)
+				ds_head = mdb.retrieve_head(database_name=db_name, df_id=ds_id, n_rows=5)
+				ds_head = ds_head.to_html(classes='table')
+				return render_template("datasets/ds_menu.html", \
+								user_type=current_user.user_type, \
+									ds_info=ds_info, \
+										ds_head=ds_head)
+		else:
+			if mdb.set_unknown_to_mode(database_name=db_name, df_id=ds_id):
+				flash('Linhas alteradas com sucesso', 'info')
+				ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=ds_id)
+				ds_head = mdb.retrieve_head(database_name=db_name, df_id=ds_id, n_rows=5)
+				ds_head = ds_head.to_html(classes='table')
+				return render_template("datasets/ds_menu.html", \
+								user_type=current_user.user_type, \
+									ds_info=ds_info, \
+										ds_head=ds_head)
+			else:
+				flash('Erro ao alterar linhas', 'error')
+				ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=ds_id)
+				ds_head = mdb.retrieve_head(database_name=db_name, df_id=ds_id, n_rows=5)
+				ds_head = ds_head.to_html(classes='table')
+				return render_template("datasets/ds_menu.html", \
+								user_type=current_user.user_type, \
+									ds_info=ds_info, \
+										ds_head=ds_head)
+	elif request.method == 'GET':
+		return redirect(url_for('alter_ds'))
 
 
 
@@ -566,6 +618,27 @@ def new_prediction():
 	else:
 		return render_template("predict/new_prediction.html", user_type=current_user.user_type, list_df=list_df)
 
+@app.route("/select_predict", methods=['GET', 'POST'])
+@login_required
+def select_predict():
+	list_df = mdb.list_datasets(database_name=db_name)
+	if list_df is not None:
+		list_df = list_df.to_dict(orient='records')
+
+	if request.method == 'POST' and 'id' in request.form:
+		id = request.form.get("id")
+		ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=id)
+		df_head = mdb.retrieve_head(database_name=db_name, df_id=id, n_rows=5)
+		df_head = df_head.to_html(classes='table')
+		return render_template("predict/ds_menu.html", \
+						 user_type=current_user.user_type, \
+							df_head=df_head, \
+								ds_info=ds_info)
+	elif request.method == 'POST':
+		flash('Selecione um dataset', 'error')
+		return render_template("predict/select_predict.html", user_type=current_user.user_type, list_df=list_df)
+	else:
+		return render_template("predict/select_predict.html", user_type=current_user.user_type, list_df=list_df)
 
 # ============ MAIN ============
 def main():

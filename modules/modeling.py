@@ -244,6 +244,7 @@ def predict(database_name, df, df_name):
 
         # save the prediction in the database
         result, df_id = database.store_dataset(db_name=database_name, df=df, df_type=3, df_name=df_name)
+        database.update_df_info(database_name, df_id)
         if result:
             print("3-dataset stored in database")
         else:

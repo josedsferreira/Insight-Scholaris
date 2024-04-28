@@ -1,10 +1,10 @@
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
 import os
 import json
 from dotenv import load_dotenv
 from sklearn.preprocessing import OneHotEncoder
 from joblib import dump, load
+from modules import database
 
 load_dotenv()
 column_names = os.getenv('COLUMN_NAMES').split(',')
@@ -192,7 +192,7 @@ def encoder(df):
 
     # Replace NaN values with 'Unknown'
     for column_name in column_names:
-        if column_name != "final_result":
+        if column_name in categorical_col_names:
             df[column_name] = df[column_name].fillna("Unknown")
 
     # Replace values in each column based on the mappings
@@ -272,8 +272,8 @@ def create_dataframe_info(df):
     """ for column in df.columns:
         info[column + '_count'] = df.groupby(column).size().to_dict() """
 
-    # Add the number of unknowns (0) in the DataFrame to the dictionary
-    info['unknowns'] = int(((df == "0") | (df == 0)).sum().sum())
+    # Add the number of unknowns (0) in the categorical columns of the DataFrame to the dictionary
+    info['unknowns'] = int(((df[categorical_col_names] == "0") | (df[categorical_col_names] == 0)).sum().sum())
 
     return info
 
@@ -347,3 +347,17 @@ def oneHotEncode(df):
     df_encoded = df_encoded.astype(int)
 
     return df_encoded
+
+def get_mode(df, column_name):
+    """
+    Get the mode value of a column in a DataFrame.
+
+    Parameters:
+    - df (pandas.DataFrame): The DataFrame to get the mode value from.
+    - column_name (str): The name of the column to get the mode value from.
+
+    Returns:
+    - mode (int): The mode value of the specified column.
+    """
+    return df[column_name].mode()[0]
+

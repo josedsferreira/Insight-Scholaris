@@ -12,6 +12,11 @@ from modules import data
 import bcrypt
 import joblib
 
+load_dotenv()
+column_names = os.getenv('COLUMN_NAMES').split(',')
+dummies_col_names = os.getenv('DUMMIES_COL_NAMES').split(',')
+categorical_col_names = os.getenv('CATEGORICAL_COLUMN_NAMES').split(',')
+
 def connection_link(database_name):
     """
     Create a connection link to a PostgreSQL database.
@@ -70,7 +75,14 @@ def store_dataset(df, db_name, df_name, df_type):
             # create dictionary with dataframe info for df_info
             info_dict = data.create_dataframe_info(df)
 
-            params = {'df_name': df_name, 'df_type': df_type, 'num_cols': info_dict['num_columns'], 'num_rows': info_dict['num_rows'], 'num_unknowns': info_dict['unknowns'], 'num_missing': info_dict['missing_values']}
+            params = {
+                        'df_name': df_name, 
+                        'df_type': df_type, 
+                        'num_cols': info_dict['num_columns'], 
+                        'num_rows': info_dict['num_rows'], 
+                        'num_unknowns': info_dict['unknowns'], 
+                        'num_missing': info_dict['missing_values']
+                    }
             
             result = connection.execute(query, params)
             connection.commit()
@@ -1362,7 +1374,16 @@ def retrieve_active_model_info(database_name):
             print(str(e))
 
 def set_model_trained(database_name, model_id):
-
+    """
+    Sets atribute is_trained to True in the models table in a PostgreSQL database.
+    
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - model_id (int): The ID of the model to set as trained.
+    
+    Returns:
+    - success (bool): True if the model was set as trained successfully, False otherwise.
+    """
     try:
             # Create a connection to PostgreSQL database
             engine = create_engine(connection_link(database_name))
@@ -1388,3 +1409,149 @@ def set_model_trained(database_name, model_id):
             print(f"An error occurred while setting trained in model in {database_name}.")
             print(str(e))
             return False # not set
+
+def deactivate_unknown_lines(database_name, df_id):
+    """
+    Deactivates lines with unknown values from the data table in a PostgreSQL database.
+
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - df_id (int): The ID of the dataframe.
+
+    Returns:
+    - success (bool): True if the unknown lines were deleted successfully, False otherwise.
+    """
+    
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        with engine.connect() as connection:
+
+            # Update the value in the table
+            query = text(f"""
+                        UPDATE data
+                        SET is_active = FALSE
+                        WHERE dataframe_id = :df_id
+                        AND (
+                            code_module = '0'
+                            OR code_presentation = '0'
+                            OR gender = '0'
+                            OR region = '0'
+                            OR highest_education = '0'
+                            OR imd_band = '0'
+                            OR age_band = '0'
+                            OR disability = '0'
+                        )
+                        """)
+            
+            params = {'df_id': df_id}
+
+            connection.execute(query, params)
+            connection.commit()
+
+            print("Unknown lines deactivated successfully.")
+
+            update_df_info(database_name, df_id)
+
+            return True
+        
+    except SQLAlchemyError as e:
+        print(f"An error occurred while deleting unknown lines from dataset {df_id} in {database_name}.")
+        print(str(e))
+        return False
+
+def set_unknown_to_mode(database_name, df_id):
+    """
+    Sets unknown values to the mode of the column in the data table in a PostgreSQL database.
+    
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - df_id (int): The ID of the dataframe.
+    
+    Returns:
+    - success (bool): True if the unknown values were set to the mode successfully, False otherwise.
+    """
+
+    df = retrieve_dataset(database_name, df_id, decode=False)
+
+    for column in df.columns:
+        if column in categorical_col_names:
+            mode = int(df[column].mode()[0])
+            try:
+                # Create a connection to PostgreSQL database
+                engine = create_engine(connection_link(database_name))
+
+                with engine.connect() as connection:
+
+                    # Update the value in the table
+                    query = text(f"""
+                                UPDATE data
+                                SET {column} = :mode
+                                WHERE dataframe_id = :df_id
+                                AND {column} = '0'
+                                """)
+
+                    params = {'mode': mode, 'df_id': df_id}
+
+                    connection.execute(query, params)
+                    connection.commit()
+
+            except SQLAlchemyError as e:
+                print(f"An error occurred while setting unknown values to the mode in dataset {df_id} in {database_name}.")
+                print(str(e))
+                return False
+            
+    update_df_info(database_name, df_id)
+    return True
+
+def update_df_info(database_name, df_id):
+    """
+    Update the info of a dataframe in the dataFrames table.
+
+    Parameters:
+    - database_name (str): The name of the database.
+    - df_id (int): The ID of the dataframe.
+
+    Returns:
+    - success (bool): True if the info was updated successfully, False otherwise.
+    """
+    df = retrieve_dataset(database_name, df_id)
+    df_info = data.create_dataframe_info(df)
+
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Store the user in the database
+        with engine.connect() as connection:
+
+            # Update the value in the table
+            query = text(f"""
+                        UPDATE dataFrames
+                        SET 
+                        num_cols = :num_cols,
+                        num_rows = :num_rows,
+                        num_unknowns = :num_unknowns,
+                        num_missing = :num_missing
+                        WHERE df_id = :df_id
+                        """)
+            
+            params = {
+                        'num_cols': df_info['num_columns'],
+                        'num_rows': df_info['num_rows'],
+                        'num_unknowns': df_info['unknowns'],
+                        'num_missing': df_info['missing_values'],
+                        'df_id': df_id
+                    }
+
+            connection.execute(query, params)
+            connection.commit()
+            print(f"Info of dataset {df_id} updated successfully.")
+            return True #info updated successfully
+
+    except SQLAlchemyError as e:
+        print(f"An error occurred while updating the info of dataset {df_id} in {database_name}.")
+        print(str(e))
+        return False #info not updated
+    

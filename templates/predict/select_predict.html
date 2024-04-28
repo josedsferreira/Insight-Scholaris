@@ -9,7 +9,7 @@
 
         <div>
         <div id="form-title">
-            <h5>Fazer previsão</h5>
+            <h5>Selecionar previsão</h5>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -32,9 +32,9 @@
                         <th>Criado em</th>
                     </tr>
                     {% for line in list_df %}
-                    {% if line['Tipo'] == "Para prever" %}
+                    {% if line['Tipo'] == "Previsão" %}
                         <tr class="clickable-tr" onclick="document.getElementById('form{{ loop.index }}').submit();">
-                            <form id="form{{ loop.index }}" method="POST" action="{{ url_for('new_prediction') }}">
+                            <form id="form{{ loop.index }}" method="POST" action="{{ url_for('select_predict') }}">
                                 <input type="hidden" name="id" value="{{ line['ID'] }}">
                                 <td>{{ line['ID'] }}</td>
                                 <td>{{ line['Nome'] }}</td>

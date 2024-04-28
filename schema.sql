@@ -38,7 +38,8 @@ create TABLE data (
     num_of_prev_attempts INTEGER,
     studied_credits INTEGER,
     disability INTEGER,
-    final_result INTEGER
+    final_result INTEGER,
+    is_active BOOLEAN DEFAULT true
 );
 /* Versão com varchars */
 create TABLE data (

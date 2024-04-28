@@ -40,9 +40,12 @@
 </nav>
 
 <div class="container">
+    <div class="body-con-2navs">
 
-    <div id="ds-info">
-        {% with messages = get_flashed_messages(with_categories=true) %}
+        <div>
+            <div>
+                <h4>Alterar dataset</h4>
+                {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         <ul class="flashes">
                         {% for category, message in messages %}
@@ -51,21 +54,30 @@
                         </ul>
                     {% endif %}
                 {% endwith %}
-        {% if ds_info %}
-        <h5><strong>{{ ds_info[1] }}</strong></h5> <!-- nome -->
-        <p><strong>Tipo:</strong> {{ ds_info[2] }}</p>
-        <p><strong>Numero de linhas:</strong> {{ ds_info[4] }}</p>
-        <p><strong>Numero de colunas:</strong> {{ ds_info[3] }}</p>
-        <p><strong>Numero de valores desconhecidos:</strong> {{ ds_info[5] }}</p>
+            </div>
+
+            <div>
+                <form method="post" action="{{ url_for('alter_ds') }}">
+                    <input type="hidden" name="id" value="{{ ds_info[0] }}"> <!-- ds_info[0] = id -->
+                    <input type="hidden" name="action" value="deactivate">
+                    <div id="submit-bt-div">
+                        <input class="btn btn-primary" type="submit" value="Eliminar linhas com valores desconhecidos" style="width: 335.45px;">
+                    </div>
+                </form>
+            </div>
+
+            <div>
+                <form method="post" action="{{ url_for('alter_ds') }}">
+                    <input type="hidden" name="id" value="{{ ds_info[0] }}"> <!-- ds_info[0] = id -->
+                    <input type="hidden" name="action" value="mode">
+                    <div id="submit-bt-div">
+                        <input class="btn btn-primary" type="submit" value="Substituir valores desconhecidos pela moda" style="width: 335.45px;">
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
-    {% endif %}
-    
-    {% if ds_head %}
-    <h6>Primeiras 5 linhas:</h6>
-    <div id="ds-head">
-        {{ ds_head|safe }}
-    </div>
-    {% endif %}
 </div>
 
 {% endblock %}
