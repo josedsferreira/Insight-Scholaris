@@ -62,6 +62,9 @@ def store_dataset(df, db_name, df_name, df_type):
             #print("The DataFrame is not encoded. Encoding it now...")
             df = data.encoder(df)
 
+        # create dictionary with dataframe info for df_info
+        info_dict = data.create_dataframe_info(df)
+
         # Store the dataframe in the database
         with engine.connect() as connection:
 
@@ -71,9 +74,6 @@ def store_dataset(df, db_name, df_name, df_type):
                          VALUES (:df_name, :df_type, :num_cols, :num_rows, :num_unknowns, :num_missing) 
                          RETURNING df_id
                          """)
-
-            # create dictionary with dataframe info for df_info
-            info_dict = data.create_dataframe_info(df)
 
             params = {
                         'df_name': df_name, 
@@ -148,7 +148,7 @@ def retrieve_dataset_info(database_name, df_id):
                     num_rows AS "Numero de linhas",
                     num_unknowns AS "Numero de desconhecidos",
                     num_missing AS "Numero de valores em falta",
-                    date_trunc('day', created_at) AS "Criado em"
+                    date_trunc('minute', created_at) AS "Criado em"
                     FROM dataFrames 
                     WHERE df_id = :id
                     ORDER BY "Criado em" DESC
@@ -326,7 +326,7 @@ def list_datasets(database_name):
                     WHEN df_type = 2 THEN 'Para prever'
                     WHEN df_type = 3 THEN 'Previsão'
                 END AS "Tipo",
-                date_trunc('day', created_at) AS "Criado em"
+                date_trunc('minute', created_at) AS "Criado em"
                 FROM dataFrames 
                 ORDER BY "Criado em" DESC
                 """
@@ -587,7 +587,19 @@ def list_models(database_name):
         engine = create_engine(connection_link(database_name))
 
         # Define the SQL query to select all records from the dataFrames table
-        query = "SELECT * FROM models"
+        query = """ 
+                SELECT 
+                model_id AS "ID",
+                model_name AS "Nome",
+                CASE
+                    WHEN model_type = 1 THEN 'SVM'
+                    WHEN model_type = 2 THEN 'XGBoost'
+                    WHEN model_type = 3 THEN 'Random Forest'
+                END AS "Tipo",
+                date_trunc('minute', created_at) AS "Criado em"
+                FROM models 
+                ORDER BY "Criado em" DESC
+                """
 
         # Execute the query and return the result as a DataFrame
         model_list = pd.read_sql(query, engine)
@@ -855,7 +867,7 @@ def list_users(database_name):
                     WHEN type = 2 THEN 'Docente'
                     WHEN type = 3 THEN 'Cientista de Dados'
                 END AS "Tipo",
-                date_trunc('day', created_at) AS "Criado em"
+                date_trunc('minute', created_at) AS "Criado em"
                 FROM users
                 WHERE is_active = TRUE
                 """

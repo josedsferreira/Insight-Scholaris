@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container">
+    <div class="body-con-modelform">
+
+        <div style="margin-top: 50px; margin-bottom: 50px;">
+
+            <div id="form-title">
+                <h5>Criar modelo Random Forest</h5>
+            </div>
+
+            <div id="form-box">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <ul class="flashes">
+                        {% for category, message in messages %}
+                            <li id="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+
+                <form action="{{url_for('create_rf')}}" method="post">
+
+                    <div id="form-1" class="form-section mb-3">
+                        <!-- Basic RF options -->
+
+                        <div id="basic-RF-options">
+
+                            <!-- n_estimators -->
+                            <div class="mb-3">
+                                <label for="n_estimators" class="form-label">Number of estimators</label>
+                                <input type="number" class="form-control" id="n_estimators" name="n_estimators" placeholder="100" value="100" min="1" step="1">
+                            </div>
+
+                            <!-- max_features -->
+                            <div class="mb-3">
+                                <label for="max_features" class="form-label" id="max_features_label">Max features: 11</label>
+                                <input type="range" class="form-range" min="1" max="11" id="max_features" value="11" oninput="updateMaxFeaturesLabel()">
+                            </div>
+
+                            <!-- min_samples_leaf -->
+                            <div class="mb-3">
+                                <label for="min_samples_leaf" class="form-label">min_samples_leaf</label>
+                                <select class="form-select" id="min_samples_leaf" aria-label="min_samples_leaf" name="min_samples_leaf_type" placeholder="Tipo de min_samples_leaf" onchange="updateMinSamplesLeafInputs()">
+                                    <option selected value="1">Minimo Absoluto de amostras</option>
+                                    <option value="2">Fração do total de amostras</option>
+                                </select>
+                                <input type="number" class="form-control" id="min_samples_leaf_int" name="min_samples_leaf_int" placeholder="1" value="1" min="1" step="1" style="display: block;">
+                                <input type="number" class="form-control" id="min_samples_leaf_float" name="min_samples_leaf_float" placeholder="0.01" value="0.01" min="0.01" max="0.5" step="0.01" disabled style="display: none;">
+                            </div>
+                            
+                        </div>
+
+                        <!-- Advanced RF options -->
+                        <div id="advanced-RF-options" style="display: none;">
+
+                            <!-- n_jobs -->
+                            <div class="mb-3">
+                                <label class="form-label">n_jobs</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="n_jobs_1" name="n_jobs" value="1" checked disabled>
+                                    <label class="form-check-label" for="n_jobs_1">1</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="n_jobs_unlimited" name="n_jobs" value="Unlimited" disabled>
+                                    <label class="form-check-label" for="n_jobs_unlimited">Unlimited</label>
+                                </div>
+                            </div>
+
+                            <!-- oob_score -->
+                            <div class="mb-3">
+                                <label class="form-label">oob_score</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="oob_score_true" name="oob_score" value="True" disabled>
+                                    <label class="form-check-label" for="n_jobs_1">True</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="oob_score_false" name="oob_score" value="False" checked disabled>
+                                    <label class="form-check-label" for="n_jobs_unlimited">False</label>
+                                </div>
+                            </div>
+                            
+                            <!-- max_depth -->
+                            <div class="mb-3">
+                                <label for="max_depth" class="form-label">Maximum Depth</label>
+                                <input type="number" class="form-control" id="max_depth" name="max_depth" placeholder="Sem limite" min="1" step="1" disabled>
+                            </div>
+
+                            <!-- min_samples_split -->
+                            <div class="mb-3">
+                                <label for="min_samples_split" class="form-label">min_samples_split</label>
+                                <select class="form-select" id="min_samples_split" aria-label="min_samples_split" name="min_samples_split_type" placeholder="Tipo de min_samples_split" onchange="updateMinSamplesSplitInputs()" disabled>
+                                    <option selected value="1">Minimo Absoluto de amostras</option>
+                                    <option value="2">Fração do total de amostras</option>
+                                </select>
+                                <input type="number" class="form-control" id="min_samples_split_int" name="min_samples_split_int" placeholder="2" value="2" min="2" step="1" style="display: block;" disabled>
+                                <input type="number" class="form-control" id="min_samples_split_float" name="min_samples_split_float" placeholder="0.01" value="0.01" min="0.00" max="1.0" step="0.01" disabled style="display: none;">
+                            </div>
+
+                            <!-- bootstrap -->
+                            <div class="mb-3">
+                                <label class="form-label">Bootstrap</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="bootstrap_true" name="bootstrap" value="True" checked disabled>
+                                    <label class="form-check-label" for="bootstrap_true">True</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="bootstrap_false" name="bootstrap" value="False" disabled>
+                                    <label class="form-check-label" for="bootstrap_false">False</label>
+                                </div>
+                            </div>
+
+                            <!-- criterion -->
+                            <div class="mb-3">
+                                <label class="form-label">Criterion</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="criterion_gini" name="criterion" value="gini" checked disabled>
+                                    <label class="form-check-label" for="criterion_gini">Gini</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="criterion_entropy" name="criterion" value="entropy" disabled>
+                                    <label class="form-check-label" for="criterion_entropy">Entropy</label>
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                        <!-- Button to show/hide advanced options -->
+                        <button type="button" class="btn btn-primary" id="toggle-advanced-RF-options" style="color: black; background-color: white;">
+                            Ver opções avançadas
+                        </button>
+
+                    </div>
+                
+
+            </div> <!-- Botao de submeter deve estar fora da caixa -->
+                    <div id="submit-bt-div">
+                        <input class="btn btn-primary" type="submit" value="Criar">
+                    </div>
+                </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

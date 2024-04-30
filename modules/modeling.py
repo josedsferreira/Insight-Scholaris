@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 import os
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.svm import LinearSVC
 from modules import data
 from modules import database
 
@@ -20,7 +23,6 @@ def create_lsvm_model(model_params):
     Returns:
     model: A Linear Support Vector Machine model
     """
-    from sklearn.svm import LinearSVC
     model = LinearSVC(**model_params)
     return model
 
@@ -34,8 +36,21 @@ def create_xgboost_model(model_params):
     Returns:
     model: An XGBoost model
     """
-    from xgboost import XGBClassifier
     model = XGBClassifier(**model_params)
+    return model
+
+def create_randomForest_model(model_params):
+    """
+    Create a Random Forest model
+    
+    Parameters:
+    model_params (dict): A dictionary containing the model parameters
+    
+    Returns:
+    model: A Random Forest model
+    """
+    
+    model = RandomForestClassifier(**model_params)
     return model
 
 def train_model(database_name, model, model_id, dataset, split):
@@ -243,6 +258,7 @@ def predict(database_name, df, df_name):
         df['final_result'] = y_pred
 
         # save the prediction in the database
+        df_name = df_name + "_predicted"
         result, df_id = database.store_dataset(db_name=database_name, df=df, df_type=3, df_name=df_name)
         database.update_df_info(database_name, df_id)
         if result:

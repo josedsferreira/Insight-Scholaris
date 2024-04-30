@@ -209,7 +209,7 @@ def import_ds():
 			print(e)
 			flash('Erro ao carregar ficheiro', 'error')
 			return render_template("datasets/import_ds.html", user_type=current_user.user_type)
-		result, id= mdb.store_dataset(db_name=db_name, df_name=ds_name, df=df, df_type=ds_type)
+		result, id = mdb.store_dataset(db_name=db_name, df_name=ds_name, df=df, df_type=ds_type)
 		if result:
 			flash('Ficheiro carregado com sucesso', 'info')
 			return render_template("datasets/import_ds.html", user_type=current_user.user_type)
@@ -530,7 +530,70 @@ def create_xgb():
 @login_required
 def create_rf():
 	model_params = session.get('model_params', None) # if there is nothing in the session, return None
-	return render_template("model/create_rf.html", user_type=current_user.user_type)
+	if model_params is None:
+		flash('Erro: Parâmetros do modelo não encontrados', 'error')
+		return render_template("model/create_rf.html", user_type=current_user.user_type)
+	elif request.method == 'POST':
+		if 'n_estimators' in request.form:
+			n_estimators = int(request.form.get('n_estimators'))
+			session['model_params']['n_estimators'] = n_estimators
+		if 'max_features' in request.form:
+			max_features = int(request.form.get('max_features'))
+			session['model_params']['max_features'] = max_features
+		if 'min_samples_leaf_type' in request.form:
+			min_samples_leaf_type = request.form.get('min_samples_leaf_type')
+			if min_samples_leaf_type == '1':  # Minimo Absoluto de amostras
+				min_samples_leaf = int(request.form.get('min_samples_leaf_int'))
+			elif min_samples_leaf_type == '2':  # Fração do total de amostras
+				min_samples_leaf = float(request.form.get('min_samples_leaf_float'))
+			session['model_params']['min_samples_leaf'] = min_samples_leaf
+		if 'n_jobs' in request.form:
+			n_jobs = request.form.get('n_jobs')
+			if n_jobs == "Unlimited":
+				n_jobs = -1
+			else: n_jobs = 1
+			session['model_params']['n_jobs'] = n_jobs
+		if 'oob_score' in request.form:
+			oob_score = bool(request.form.get('oob_score'))
+			session['model_params']['oob_score'] = oob_score
+		if 'max_depth' in request.form:
+			max_depth = request.form.get('max_depth')
+			print(max_depth)
+			if max_depth == '':
+				max_depth = None
+			else: max_depth = int(max_depth)
+			session['model_params']['max_depth'] = max_depth
+		if 'min_samples_split_type' in request.form:
+			min_samples_split_type = request.form.get('min_samples_split_type')
+			if min_samples_split_type == '1':  # Minimo Absoluto de amostras
+				min_samples_split = int(request.form.get('min_samples_split_int'))
+			elif min_samples_split_type == '2':  # Fração do total de amostras
+				min_samples_split = float(request.form.get('min_samples_split_float'))
+			session['model_params']['min_samples_split'] = min_samples_split
+		if 'bootstrap' in request.form:
+			bootstrap = bool(request.form.get('bootstrap'))
+			session['model_params']['bootstrap'] = bootstrap
+		if 'criterion' in request.form:
+			criterion = request.form.get('criterion')
+			session['model_params']['criterion'] = criterion
+
+		model = modeling.create_randomForest_model(session['model_params'])
+
+		model_id = mdb.store_model(database_name=db_name, model_name=session['model']['model_name'], model=model, model_type=3)
+		session['model']['active_model_id'] = model_id
+		session.modified = True  # This tells Flask to save the session
+		# since we are just changing a value thats not at the top level of the dictionary it wont know that it has changed
+		
+		if not mdb.set_active_model(database_name=db_name, model_id=model_id):
+			flash('Erro ao ativar modelo', 'error')
+			return render_template("model/create_rf.html", user_type=current_user.user_type)
+		else:
+			list_df = mdb.list_datasets(database_name=db_name)
+			if list_df is not None:
+				list_df = list_df.to_dict(orient='records')
+			return render_template("model/train_model.html", user_type=current_user.user_type, list_df=list_df)
+	elif request.method == 'GET':
+		return render_template("model/create_rf.html", user_type=current_user.user_type)
 
 @app.route("/train_model", methods=['GET', 'POST'])
 @login_required
@@ -607,10 +670,11 @@ def new_prediction():
 		prediction, pred_id = modeling.predict(database_name=db_name, df=df, df_name=df_name)
 		ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=pred_id)
 		df_head = mdb.retrieve_head(database_name=db_name, df_id=pred_id, n_rows=5)
+		print(df_head)
 		df_head = df_head.to_html(classes='table')
-		return render_template("predict/ds_menu.html", \
+		return render_template("datasets/ds_menu.html", \
 						 user_type=current_user.user_type, \
-							df_head=df_head, \
+							ds_head=df_head, \
 								ds_info=ds_info)
 	elif request.method == 'POST':
 		flash('Selecione um dataset', 'error')

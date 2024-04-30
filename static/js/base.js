@@ -176,6 +176,40 @@ if (toggleAdvancedXGB) {
 }
 
 
+
+/* Toggle advanced RF options */
+toggleAdvancedRF = document.getElementById('toggle-advanced-RF-options');
+if (toggleAdvancedRF) {
+    toggleAdvancedRF.addEventListener('click', function() {
+    
+        // get the options div
+        const advanced_Options = document.getElementById('advanced-RF-options');
+
+        // Select all form elements inside the div
+        var formElements = advanced_Options.querySelectorAll('input, select, textarea, button');
+
+        // show or hide the advanced options
+        if (advanced_Options.style.display === 'none') {
+            advanced_Options.style.display = 'block';
+            this.textContent = 'Esconder opções avançadas';
+
+            // Loop through the form elements and turn them on
+            formElements.forEach(function(element) {
+                element.disabled = false;
+            });
+
+        } else {
+            advanced_Options.style.display = 'none';
+            this.textContent = 'Ver opções avançadas';
+
+            // Loop through the form elements and disable them
+            formElements.forEach(function(element) {
+                element.disabled = true;
+            });
+        }
+    });
+}
+
 /* Show custom gamma option */
 function enableGammaInput() {
     document.getElementById('custom-gamma').disabled = false;
@@ -237,13 +271,91 @@ function submitSplitAndDSForm(formId) {
 }
 
 
+/* Update label of max_features */
+window.onload = updateMaxFeaturesLabel;
+function updateMaxFeaturesLabel() {
+    var max_features = document.getElementById('max_features');
+    var label = document.getElementById('max_features_label');
+    if (max_features.value == max_features.max) {
+        label.textContent = 'Max features: All';
+    } else {
+        label.textContent = 'Max features: ' + max_features.value;
+    }
+}
 
 
 
+/* Switch type of min_samples_leaf */
+function updateMinSamplesLeafInputs() {
+    var select = document.getElementById('min_samples_leaf');
+    var intInput = document.getElementById('min_samples_leaf_int');
+    var floatInput = document.getElementById('min_samples_leaf_float');
+    if (select.value == '1') {
+        if (intInput.style.display === 'none') {
+            intInput.style.display = 'block';
+        }
+        if (floatInput.style.display === 'block') {
+            floatInput.style.display = 'none';
+        }
+        intInput.disabled = false;
+        floatInput.disabled = true;
+    } else if (select.value == '2') {
+        if (intInput.style.display === 'block') {
+            intInput.style.display = 'none';
+        }
+        if (floatInput.style.display === 'none') {
+            floatInput.style.display = 'block';
+        }
+        intInput.disabled = true;
+        floatInput.disabled = false;
+    } else {
+        if (intInput.style.display === 'block') {
+            intInput.style.display = 'none';
+        }
+        if (floatInput.style.display === 'block') {
+            floatInput.style.display = 'none';
+        }
+        intInput.disabled = true;
+        floatInput.disabled = true;
+    }
+}
 
 
 
-
+/* Switch type of min_samples_split */
+function updateMinSamplesLeafInputs() {
+    var select = document.getElementById('min_samples_split');
+    var intInput = document.getElementById('min_samples_split_int');
+    var floatInput = document.getElementById('min_samples_split_float');
+    if (select.value == '1') {
+        if (intInput.style.display === 'none') {
+            intInput.style.display = 'block';
+        }
+        if (floatInput.style.display === 'block') {
+            floatInput.style.display = 'none';
+        }
+        intInput.disabled = false;
+        floatInput.disabled = true;
+    } else if (select.value == '2') {
+        if (intInput.style.display === 'block') {
+            intInput.style.display = 'none';
+        }
+        if (floatInput.style.display === 'none') {
+            floatInput.style.display = 'block';
+        }
+        intInput.disabled = true;
+        floatInput.disabled = false;
+    } else {
+        if (intInput.style.display === 'block') {
+            intInput.style.display = 'none';
+        }
+        if (floatInput.style.display === 'block') {
+            floatInput.style.display = 'none';
+        }
+        intInput.disabled = true;
+        floatInput.disabled = true;
+    }
+}
 
 
 

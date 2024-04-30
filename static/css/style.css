@@ -9,12 +9,22 @@
     --table-box-height: 500px;
 
     /* ==== Colors ===== */
-    --body-color: white;
+    /* --body-color: white;
     --sidebar-color: lightgrey;
     --bezzel-color: lightgrey;
     --lightbezzel-color: rgb(235, 235, 235);
     --primary-color: grey;
+    --text-color: black; */
+    /* ==== Alternative Colors ===== */
+    --body-color: white;
+    --bezzel-color: #C2CFB2;
+    --lightbezzel-color: white;
+    --primary-color: #8DB580;
     --text-color: black;
+    /* other colors that fit this theme: */
+    /* 7E8987
+    4B4A67
+    DDD1C7 */
 
     /* ===== Transtions ===== */
     --tran-02: all 0.2s ease;
@@ -300,22 +310,22 @@ body {
 
 /* ========== Bootstrap Override ========== */
 .btn-primary {
-    background-color: lightgrey;
+    background-color: var(--bezzel-color);
     color: black;
     border-color: black;
 }
 .btn-primary:hover {
-    background-color: lightgrey;
+    background-color: var(--bezzel-color);
     color: black;
     border-color: black;
 }
 .btn-primary:active {
-    background-color: lightgrey;
+    background-color: var(--bezzel-color);
     color: black;
     border-color: black;
 }
 .btn.btn-primary:visited {
-    background-color: lightgrey;
+    background-color: var(--bezzel-color);
     color: black;
     border-color: white;
 }
@@ -330,6 +340,13 @@ body {
 }
 .dropdown-item:active {
     background-color: var(--primary-color) !important;
+}
+#max_features::-webkit-slider-thumb {
+    background: var(--primary-color);
+}
+
+#max_features::-moz-range-thumb {
+    background: var(--primary-color);
 }
 
 
