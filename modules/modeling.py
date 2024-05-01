@@ -130,8 +130,10 @@ def train_model(database_name, model, model_id, dataset, split, ds_id):
 
         if database.set_ds_train_id(database_name=database_name, model_id=model_id, ds_id=ds_id):
             print("10-dataset train id set")
-
-        vz.create_ROC(database_name, model_id)
+        
+        # Predict the probabilities for the test dataset
+        y_score = model.predict_proba(X_test)[:, 1]
+        vz.create_ROC(model_id, y_test, y_score)
         vz.create_confusion_matrix(database_name, model_id)
         vz.create_PRC(database_name, model_id)
         print("11-visualizations created")

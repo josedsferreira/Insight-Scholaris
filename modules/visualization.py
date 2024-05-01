@@ -2,8 +2,9 @@ from modules import data
 from modules import database
 import matplotlib.pyplot as plt
 from sklearn import metrics
+from sklearn.metrics import roc_curve, auc
 
-def create_ROC(database_name, model_id):
+def create_ROC(model_id, y_test, y_score):
     """
     Create and store ROC curve for a given model
 
@@ -15,18 +16,13 @@ def create_ROC(database_name, model_id):
     file_name (str): name of the file where the ROC curve is stored
     """
 
-    eval = database.retrieve_evaluations(database_name, model_id)
-    fp = eval[0][3]
-    fn = eval[0][4]
-    tp = eval[0][5]
-    tn = eval[0][6]
-
-    fpr = fp / (fp + tn)
-    tpr = tp / (tp + fn)
-
-    # Plot the ROC curve
+    # Compute ROC curve and ROC area
+    fpr, tpr, _ = roc_curve(y_test, y_score)
+    roc_auc = auc(fpr, tpr)
+        
+    # Plot ROC curve
     plt.figure()
-    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % metrics.auc(fpr, tpr))
+    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
@@ -34,9 +30,9 @@ def create_ROC(database_name, model_id):
     plt.ylabel('True Positive Rate')
     plt.title('Receiver Operating Characteristic')
     plt.legend(loc="lower right")
-
+        
     # Save the figure
-    file_name = f"/static/img/graphs/ROC_curve_model_{model_id}.svg"
+    file_name = f"static/img/graphs/ROC_curve_model_{model_id}.svg"
     plt.savefig(file_name)
     plt.close()
 
@@ -53,30 +49,33 @@ def create_confusion_matrix(database_name, model_id):
     Returns:
     file_name (str): name of the file where the confusion matrix is stored
     """
+    try:
+        eval = database.retrieve_evaluations(database_name, model_id)
+        fp = eval['fp'][0]
+        fn = eval['fn'][0]
+        tp = eval['tp'][0]
+        tn = eval['tn'][0]
 
-    eval = database.retrieve_evaluations(database_name, model_id)
-    fp = eval[0][3]
-    fn = eval[0][4]
-    tp = eval[0][5]
-    tn = eval[0][6]
+        # Plot the confusion matrix
+        plt.figure()
+        plt.imshow([[tp, fp], [fn, tn]], interpolation='nearest', cmap=plt.cm.Blues)
+        plt.title('Confusion matrix')
+        plt.colorbar()
+        tick_marks = ['Positive', 'Negative']
+        plt.xticks([0, 1], tick_marks)
+        plt.yticks([0, 1], tick_marks)
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
 
-    # Plot the confusion matrix
-    plt.figure()
-    plt.imshow([[tp, fp], [fn, tn]], interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title('Confusion matrix')
-    plt.colorbar()
-    tick_marks = ['Positive', 'Negative']
-    plt.xticks([0, 1], tick_marks)
-    plt.yticks([0, 1], tick_marks)
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+        # Save the figure
+        file_name = f"static/img/graphs/confusion_matrix_model_{model_id}.svg"
+        plt.savefig(file_name)
+        plt.close()
 
-    # Save the figure
-    file_name = f"/static/img/graphs/confusion_matrix_model_{model_id}.svg"
-    plt.savefig(file_name)
-    plt.close()
-
-    return file_name
+        return file_name
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
 def create_PRC(database_name, model_id):
     """
@@ -89,30 +88,36 @@ def create_PRC(database_name, model_id):
     Returns:
     file_name (str): name of the file where the PRC curve is stored
     """
+    try:
+        eval = database.retrieve_evaluations(database_name, model_id)
+        fp = eval['fp'][0]
+        fn = eval['fn'][0]
+        tp = eval['tp'][0]
+        tn = eval['tn'][0]
 
-    eval = database.retrieve_evaluations(database_name, model_id)
-    fp = eval[0][3]
-    fn = eval[0][4]
-    tp = eval[0][5]
-    tn = eval[0][6]
+        if tp + fp != 0:
+            precision = tp / (tp + fp)
+        else:
+            precision = 0
+        recall = tp / (tp + fn)
 
-    precision = tp / (tp + fp)
-    recall = tp / (tp + fn)
+        # Plot the PRC curve
+        plt.figure()
+        plt.plot(recall, precision, label='PRC curve')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.title('Precision-Recall curve')
+        plt.legend(loc="lower right")
 
-    # Plot the PRC curve
-    plt.figure()
-    plt.plot(recall, precision, label='PRC curve')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.title('Precision-Recall curve')
-    plt.legend(loc="lower right")
+        # Save the figure
+        file_name = f"static/img/graphs/PRC_curve_model_{model_id}.svg"
+        plt.savefig(file_name)
+        plt.close()
 
-    # Save the figure
-    file_name = f"/static/img/graphs/PRC_curve_model_{model_id}.svg"
-    plt.savefig(file_name)
-    plt.close()
-
-    return file_name
+        return file_name
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
