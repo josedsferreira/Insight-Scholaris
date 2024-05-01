@@ -7,6 +7,7 @@ CREATE TABLE dataframes (
     num_rows INTEGER,
     num_uknowns INTEGER,
     num_missing INTEGER,
+    changes INTEGER default 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -29,7 +30,6 @@ create TABLE data (
     dataframe_id INTEGER REFERENCES dataframes(df_id),
     code_module INTEGER,
     code_presentation INTEGER,
-    id_student INTEGER,
     gender INTEGER,
     region INTEGER,
     highest_education INTEGER,
@@ -69,6 +69,7 @@ CREATE Table models (
     is_active BOOLEAN DEFAULT false,
     model_file_name VARCHAR(255),
     parameters JSON,
+    training_dataset_id INTEGER REFERENCES dataframes(df_id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

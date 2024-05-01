@@ -407,6 +407,16 @@ body {
     padding: 20px;
     border-radius: 10px;
 }
+#trainmodel-table-box {
+    width: var(--table-box-width);
+    text-align: left;
+    background-color: var(--bezzel-color);
+    padding: 20px;
+    border-radius: 10px;
+}
+#trainmodel-table-box tr{
+    background-color: var(--body-color);
+}
 tr {
     text-align: left !important;
 }

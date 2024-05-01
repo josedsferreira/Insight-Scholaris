@@ -9,6 +9,7 @@ from xgboost import XGBClassifier
 from sklearn.svm import LinearSVC
 from modules import data
 from modules import database
+from modules import visualization as vz
 
 load_dotenv()
 categorical_col_names = os.getenv('CATEGORICAL_COLUMN_NAMES').split(',')
@@ -53,7 +54,7 @@ def create_randomForest_model(model_params):
     model = RandomForestClassifier(**model_params)
     return model
 
-def train_model(database_name, model, model_id, dataset, split):
+def train_model(database_name, model, model_id, dataset, split, ds_id):
     """
     Train a model, update the saved model file and store the evaluation in the database
     
@@ -63,6 +64,7 @@ def train_model(database_name, model, model_id, dataset, split):
     dataset (pandas dataframe): A dataframe containing the dataset
     model_id (int): The model ID
     split (float): The test size for the train-test split
+    ds_id (int): The ID for the dataset used to train the model
     
     Returns:
     bool: True if the model was trained successfully, False otherwise
@@ -126,7 +128,15 @@ def train_model(database_name, model, model_id, dataset, split):
         database.set_model_trained(database_name, model_id)
         print("9-model trained set to true")
 
-        print("10-train_model finished")
+        if database.set_ds_train_id(database_name=database_name, model_id=model_id, ds_id=ds_id):
+            print("10-dataset train id set")
+
+        vz.create_ROC(database_name, model_id)
+        vz.create_confusion_matrix(database_name, model_id)
+        vz.create_PRC(database_name, model_id)
+        print("11-visualizations created")
+
+        print("-train_model finished")
         return True
     except Exception as e:
         print(f"An error occurred: {e}")

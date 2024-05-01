@@ -603,17 +603,18 @@ def train_model():
 		list_df = list_df.to_dict(orient='records')
 
 	if request.method == 'POST' and 'split' in request.form and 'id' in request.form:
-		id = request.form.get('id')
-		dataset = mdb.retrieve_dataset(database_name=db_name, df_id=id, decode=False)
+		ds_id = request.form.get('id')
+		dataset = mdb.retrieve_dataset(database_name=db_name, df_id=ds_id, decode=False)
 		split = int(request.form.get('split')) / 100 # convert to percentage
 		model_id = session['model']['active_model_id']
 		model = mdb.retrieve_model(database_name=db_name, model_id=model_id)
 
 		if model is not None:
-			if modeling.train_model(database_name=db_name, model=model, model_id=model_id, dataset=dataset, split=split):
+			if modeling.train_model(database_name=db_name, model=model, model_id=model_id, dataset=dataset, split=split, ds_id=ds_id):
 				#flash('Modelo treinado com sucesso', 'info')
 				model_info = mdb.retrieve_active_model_info(database_name=db_name)
 				parameters = model_info['parameters'].values[0]
+				parameters = {k: v for k, v in parameters.items() if v is not None} #remove None's
 				f1_score = modeling.get_f1_score(database_name=db_name, model_id=model_info['model_id'].values[0])
 				return render_template("model/model_info.html", user_type=current_user.user_type, model_info=model_info, parameters=parameters, f1_score=f1_score)
 			else:
@@ -646,7 +647,7 @@ def parameters():
 @login_required
 def evaluation():
 	model_info = mdb.retrieve_active_model_info(database_name=db_name)
-	full_eval = modeling.create_full_eval(database_name=db_name, model_id=model_info['model_id'].values[0], pt=True)
+	full_eval = modeling.create_full_eval(database_name=db_name, model_id=model_info['model_id'].values[0], pt=False)
 	return render_template("model/evaluation.html", user_type=current_user.user_type, full_eval=full_eval)
 
 @app.route("/algo", methods=['GET'])
@@ -682,11 +683,12 @@ def new_prediction():
 	else:
 		return render_template("predict/new_prediction.html", user_type=current_user.user_type, list_df=list_df)
 
-@app.route("/select_predict", methods=['GET', 'POST'])
+@app.route("/select_prediction", methods=['GET', 'POST'])
 @login_required
-def select_predict():
+def select_prediction():
 	list_df = mdb.list_datasets(database_name=db_name)
 	if list_df is not None:
+		list_df = list_df[list_df['Tipo'] == 'Previsão']
 		list_df = list_df.to_dict(orient='records')
 
 	if request.method == 'POST' and 'id' in request.form:
@@ -700,9 +702,9 @@ def select_predict():
 								ds_info=ds_info)
 	elif request.method == 'POST':
 		flash('Selecione um dataset', 'error')
-		return render_template("predict/select_predict.html", user_type=current_user.user_type, list_df=list_df)
+		return render_template("predict/select_prediction.html", user_type=current_user.user_type, list_df=list_df)
 	else:
-		return render_template("predict/select_predict.html", user_type=current_user.user_type, list_df=list_df)
+		return render_template("predict/select_prediction.html", user_type=current_user.user_type, list_df=list_df)
 
 # ============ MAIN ============
 def main():

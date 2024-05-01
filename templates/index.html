@@ -21,7 +21,7 @@
 <body class="main-menu-body" style="margin: 0 auto 0 auto;">
 
     <!-- DEBBUGING -->
-    
+    <a href="{{ url_for('train_model') }}" style="display: none;">Debug</a>
 
     <img class="logo-big" src="/static/img/logo.svg" alt="Logo">
     <div class="button-roll">
@@ -36,7 +36,7 @@
             </a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton3">
                 <a class="dropdown-item" href="{{ url_for('new_prediction') }}">Fazer previsão</a>
-                <a class="dropdown-item" href="#">Ver previsões anteriores</a>
+                <a class="dropdown-item" href="{{ url_for('select_prediction') }}">Ver previsões anteriores</a>
             </div>
             <p>Prever</p>
         </div>

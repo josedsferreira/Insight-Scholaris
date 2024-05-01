@@ -88,6 +88,9 @@ def store_dataset(df, db_name, df_name, df_type):
             connection.commit()
             df_id = result.fetchone()[0]
 
+            # drop id_student column if it exists
+            if 'id_student' in df.columns:
+                df = df.drop(columns=['id_student'])
             # Add df_id column to the DataFrame
             df['dataframe_id'] = df_id
 
@@ -125,7 +128,8 @@ def retrieve_dataset_info(database_name, df_id):
     4- Numero de linhas: The number of rows in the dataset.
     5- Numero de desconhecidos: The number of unknown values in the dataset.
     6- Numero de valores em falta: The number of missing values in the dataset.
-    7- Criado em: The date the dataset was created.
+    7- Alterações: The changes made to the dataset.
+    8- Criado em: The date the dataset was created.
 
     Raises:
     - SQLAlchemyError: If an error occurs while retrieving the dataset.
@@ -148,6 +152,7 @@ def retrieve_dataset_info(database_name, df_id):
                     num_rows AS "Numero de linhas",
                     num_unknowns AS "Numero de desconhecidos",
                     num_missing AS "Numero de valores em falta",
+                    changes AS "Alterações", 
                     date_trunc('minute', created_at) AS "Criado em"
                     FROM dataFrames 
                     WHERE df_id = :id
@@ -735,6 +740,14 @@ def retrieve_evaluations(database_name, model_id):
 
     Returns:
     - evaluations (pandas.DataFrame): The dataframe containing all evaluations of the model.
+    Columns:
+    1- evaluation_id SERIAL PRIMARY KEY,
+    2- model_id INTEGER REFERENCES models(model_id),
+    3- fp INTEGER,
+    4- fn INTEGER,
+    5- tp INTEGER,
+    6- tn INTEGER,
+    7- created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     """
 
     try:
@@ -1343,6 +1356,7 @@ def retrieve_active_model_info(database_name):
     10-'fn'
     11-'tp'
     12-'tn'
+    13-'training_dataset_id'
     """
 
     try:
@@ -1377,7 +1391,8 @@ def retrieve_active_model_info(database_name):
                                                         'parameters', \
                                                             'created_at', \
                                                                 'evaluation_id', \
-                                                                    'fp', 'fn', 'tp', 'tn']]
+                                                                    'fp', 'fn', 'tp', 'tn', \
+                                                                        "training_dataset_id"]]
             return model_info
         else:
             return None
@@ -1567,3 +1582,40 @@ def update_df_info(database_name, df_id):
         print(str(e))
         return False #info not updated
     
+def set_ds_train_id(database_name, model_id, ds_id):
+    """
+    Set the ID of the dataset used to train a model in the models table in a PostgreSQL database.
+    
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - model_id (int): The ID of the model.
+    - ds_id (int): The ID of the dataset used to train the model.
+    
+    Returns:
+    - success (bool): True if the dataset ID was set successfully, False otherwise.
+    """
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        with engine.connect() as connection:
+
+            # Update the value in the table
+            query = text(f"""
+                        UPDATE models
+                        SET 
+                        training_dataset_id = :ds_id
+                        WHERE model_id = :model_id
+                        """)
+            
+            params = {'ds_id': ds_id, 'model_id': model_id}
+
+            connection.execute(query, params)
+            connection.commit()
+
+            return True # set successfully
+
+    except SQLAlchemyError as e:
+        print(f"An error occurred while setting the dataset ID in model {model_id} in {database_name}.")
+        print(str(e))
+        return False # not set

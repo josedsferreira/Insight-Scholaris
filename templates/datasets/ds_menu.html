@@ -51,6 +51,14 @@
         <p><strong>Numero de linhas:</strong> {{ ds_info[4] }}</p>
         <p><strong>Numero de colunas:</strong> {{ ds_info[3] }}</p>
         <p><strong>Numero de valores desconhecidos:</strong> {{ ds_info[5] }}</p>
+        {% if ds_info[7] != 0 %}
+            {% if ds_info[7] == 1 %}
+                <p><strong>Alterações:</strong>Linhas com valores desconhecidos eliminadas</p>
+            {% endif %}
+            {% if ds_info[7] == 2 %}
+                <p><strong>Alterações:</strong>Valores desconhecidos substituidos pela moda</p>
+            {% endif %}
+        {% endif %}
     </div>
     {% endif %}
     
