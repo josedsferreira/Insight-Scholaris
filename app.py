@@ -648,7 +648,7 @@ def parameters():
 def evaluation():
 	model_info = mdb.retrieve_active_model_info(database_name=db_name)
 	full_eval = modeling.create_full_eval(database_name=db_name, model_id=model_info['model_id'].values[0], pt=False)
-	return render_template("model/evaluation.html", user_type=current_user.user_type, full_eval=full_eval)
+	return render_template("model/evaluation.html", user_type=current_user.user_type, full_eval=full_eval, model_info=model_info)
 
 @app.route("/algo", methods=['GET'])
 @login_required

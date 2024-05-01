@@ -7,7 +7,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-sec-nav">
     <div class="container-fluid">
 
-        <a class="navbar-brand" id="secnav-title" href="{{ url_for('model_info') }}">Modelo ativo</a>
+        <a class="navbar-brand" id="secnav-title" href="{{ url_for('model_info') }}" style="cursor: pointer;">Modelo ativo</a>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -32,54 +32,65 @@
 
 
 <div class="container">
-    <div style="display: flex; justify-content: center;">
+    <div class="row">
+        <div class="col-md-6">
+            <div style="display: flex; justify-content: center;">
 
-        <div style="margin-top: 40px;">
-            <div>
-                <h4>Modelo: {{ model_info["model_name"][0] }}</h4>
-                {% if model_info["model_type"][0] == 1 or model_info["model_type"][0] == "1" %}
-                <p><strong>Algoritmo: </strong>Support Vector Machines</p>
-                {% elif model_info["model_type"][0] == 2 or model_info["model_type"][0] == "2" %}
-                <p><strong>Algoritmo: </strong>XGBoost</p>
-                {% elif model_info["model_type"][0] == 3 or model_info["model_type"][0] == "3" %}
-                <p><strong>Algoritmo: </strong>Random Forest</p>
-                {% else %}
-                <p><strong>Algoritmo: </strong>Unknown</p>
-                {% endif %}
-                <p><strong>F1 Score: </strong>{{ f1_score | round(2) }}</p>
-                <p style="display: inline-block; margin: 0 5px 0 0;"><strong>Dataset de treino: </strong> 
-                    <form method="post" action="{{ url_for('ds_menu') }}" style="display: inline-block;">
-                        <input type="hidden" name="id" value="{{ model_info['training_dataset_id'][0] }}"> <!-- id dataset-->
-                        <div id="submit-bt-div" style="margin: 0;">
-                            <input class="btn btn-primary" type="submit" value="Ver" style="margin: 0;">
-                        </div>
-                    </form> 
-                </p>
-            </div>
+                <div style="margin-top: 40px;">
+                    <div>
+                        <h4>Modelo: {{ model_info["model_name"][0] }}</h4>
+                        {% if model_info["model_type"][0] == 1 or model_info["model_type"][0] == "1" %}
+                        <p><strong>Algoritmo: </strong>Support Vector Machines</p>
+                        {% elif model_info["model_type"][0] == 2 or model_info["model_type"][0] == "2" %}
+                        <p><strong>Algoritmo: </strong>XGBoost</p>
+                        {% elif model_info["model_type"][0] == 3 or model_info["model_type"][0] == "3" %}
+                        <p><strong>Algoritmo: </strong>Random Forest</p>
+                        {% else %}
+                        <p><strong>Algoritmo: </strong>Unknown</p>
+                        {% endif %}
+                        <p><strong>F1 Score: </strong>{{ f1_score | round(2) }}</p>
+                        <p style="display: inline-block; margin: 0 5px 0 0;"><strong>Dataset de treino: </strong> 
+                            <form method="post" action="{{ url_for('ds_menu') }}" style="display: inline-block;">
+                                <input type="hidden" name="id" value="{{ model_info['training_dataset_id'][0] }}"> <!-- id dataset-->
+                                <div id="submit-bt-div" style="margin: 0;">
+                                    <input class="btn btn-primary" type="submit" value="Ver" style="margin: 0;">
+                                </div>
+                            </form> 
+                        </p>
+                    </div>
 
-            <h6>Parâmetros do modelo</h6>
-            <div class="mb-3">
-                {% for key, value in parameters.items() %}
-                    {% if value is not none %}
-                        {% if loop.index0 % 2 == 0 %}
-                            {% if loop.index0 != 0 %}
-                                </ul>
+                    <h6>Parâmetros do modelo</h6>
+                    <div class="mb-3">
+                        {% for key, value in parameters.items() %}
+                            {% if value is not none %}
+                                {% if loop.index0 % 2 == 0 %}
+                                    {% if loop.index0 != 0 %}
+                                        </ul>
+                                    {% endif %}
+                                    <ul class="list-group list-group-horizontal" style="display: flex;">
+                                {% endif %}
+                                <li class="list-group-item" style="width: 220px;">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">{{ key }}</div>
+                                        {{ value }}
+                                    </div>
+                                </li>
+                                {% if loop.index0 % 2 == 1 or loop.last %}
+                                    </ul>
+                                {% endif %}
                             {% endif %}
-                            <ul class="list-group list-group-horizontal" style="display: flex;">
-                        {% endif %}
-                        <li class="list-group-item" style="width: 220px;">
-                            <div class="ms-2 me-auto">
-                                <div class="fw-bold">{{ key }}</div>
-                                {{ value }}
-                            </div>
-                        </li>
-                        {% if loop.index0 % 2 == 1 or loop.last %}
-                            </ul>
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
+                        {% endfor %}
+                    </div>
+                    
+                </div>
+
             </div>
-            
+        </div>
+
+        <div class="col-md-6">
+            <img src="/static/img/graphs/confusion_matrix_model_{{ model_info['model_id'].values[0] }}.svg" alt="Confusion Matrix" style="width: 100%; height: auto;">
+            <img src="/static/img/graphs/ROC_curve_model_{{ model_info['model_id'].values[0] }}.svg" alt="ROC Curve" style="width: 100%; height: auto;">
+            <img src="/static/img/graphs/PRC_curve_model_{{ model_info['model_id'].values[0] }}.svg" alt="PRC Curve" style="width: 100%; height: auto;">
         </div>
 
     </div>

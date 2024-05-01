@@ -2,15 +2,16 @@ from modules import data
 from modules import database
 import matplotlib.pyplot as plt
 from sklearn import metrics
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import precision_recall_curve, roc_curve, auc
 
 def create_ROC(model_id, y_test, y_score):
     """
     Create and store ROC curve for a given model
 
     Parameters:
-    database_name (str): name of the database
     model_id (int): model id
+    y_test (list): list of true labels
+    y_score (list): list of predicted labels
 
     Returns:
     file_name (str): name of the file where the ROC curve is stored
@@ -77,29 +78,20 @@ def create_confusion_matrix(database_name, model_id):
         print(f"An error occurred: {e}")
         return None
 
-def create_PRC(database_name, model_id):
+def create_PRC(model_id, y_test, y_score):
     """
     Create and store Precision-Recall curve for a given model
 
     Parameters:
-    database_name (str): name of the database
     model_id (int): model id
+    y_test (list): list of true labels
+    y_score (list): list of predicted labels
 
     Returns:
     file_name (str): name of the file where the PRC curve is stored
     """
     try:
-        eval = database.retrieve_evaluations(database_name, model_id)
-        fp = eval['fp'][0]
-        fn = eval['fn'][0]
-        tp = eval['tp'][0]
-        tn = eval['tn'][0]
-
-        if tp + fp != 0:
-            precision = tp / (tp + fp)
-        else:
-            precision = 0
-        recall = tp / (tp + fn)
+        precision, recall, _ = precision_recall_curve(y_test, y_score)
 
         # Plot the PRC curve
         plt.figure()

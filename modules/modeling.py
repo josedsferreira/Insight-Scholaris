@@ -135,7 +135,7 @@ def train_model(database_name, model, model_id, dataset, split, ds_id):
         y_score = model.predict_proba(X_test)[:, 1]
         vz.create_ROC(model_id, y_test, y_score)
         vz.create_confusion_matrix(database_name, model_id)
-        vz.create_PRC(database_name, model_id)
+        vz.create_PRC(model_id, y_test, y_score)
         print("11-visualizations created")
 
         print("-train_model finished")

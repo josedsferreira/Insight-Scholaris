@@ -7,7 +7,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-sec-nav">
     <div class="container-fluid">
 
-        <a class="navbar-brand" id="secnav-title" href="{{ url_for('model_info') }}">Modelo ativo</a>
+        <a class="navbar-brand" id="secnav-title" href="{{ url_for('model_info') }}" style="cursor: pointer;">Modelo ativo</a>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -60,6 +60,19 @@
             </div>
         </div>
 
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <img src="/static/img/graphs/confusion_matrix_model_{{ model_info['model_id'].values[0] }}.svg" alt="Confusion Matrix" style="width: 100%; height: auto;">
+        </div>
+        <div class="col-md-6">
+            <img src="/static/img/graphs/ROC_curve_model_{{ model_info['model_id'].values[0] }}.svg" alt="ROC Curve" style="width: 100%; height: auto;">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <img src="/static/img/graphs/PRC_curve_model_{{ model_info['model_id'].values[0] }}.svg" alt="PRC Curve" style="width: 100%; height: auto;">
+        </div>
     </div>
 </div>
 
