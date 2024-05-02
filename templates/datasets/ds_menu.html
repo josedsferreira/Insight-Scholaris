@@ -13,18 +13,22 @@
                 <li class="nav-item">
                     <form method="post" action="{{ url_for('export_ds') }}">
                         <input type="hidden" name="ds_id" value="{{ ds_info[0] }}"> <!-- ds_info[0] = id -->
-                        <button type="submit" class="btn btn-link nav-link" style="border: none;">Exportar</button>
+                        <button type="submit" class="btn btn-link nav-link" style="border: none;">
+                            <i class="bi bi-download"></i> Exportar
+                        </button>
                     </form>
                 </li>
 
-                <div class="vr"></div>
+                {% if ds_info[2] != 2 %}
+                    <div class="vr"></div>
 
-                <li class="nav-item">
-                    <form method="post" action="{{ url_for('alter_ds') }}">
-                        <input type="hidden" name="ds_id" value="{{ ds_info[0] }}"> <!-- ds_info[0] = id -->
-                        <button type="submit" class="btn btn-link nav-link" style="border: none;">Alterar dataset</button>
-                    </form>
-                </li>
+                    <li class="nav-item">
+                        <form method="post" action="{{ url_for('alter_ds') }}">
+                            <input type="hidden" name="ds_id" value="{{ ds_info[0] }}"> <!-- ds_info[0] = id -->
+                            <button type="submit" class="btn btn-link nav-link" style="border: none;">Alterar dataset</button>
+                        </form>
+                    </li>
+                {% endif %}
 
             </ul>
         

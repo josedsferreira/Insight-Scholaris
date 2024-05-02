@@ -7,10 +7,19 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-sec-nav">
     <div class="container-fluid">
 
-        <a class="navbar-brand" id="secnav-title" href="{{ url_for('model_info') }}" style="cursor: pointer;">Modelo ativo</a>
+        <a class="navbar-brand" id="secnav-title" href="#" style="cursor: pointer;">Modelo</a>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                <li class="nav-item">
+                    <form id="activateModelForm" method="post" action="{{ url_for('activate_model') }}">
+                        <input type="hidden" name="id" value="{{ model_info['model_id'].values[0] }}"> <!-- id modelo-->
+                        <a href="#" class="nav-link" onclick="document.getElementById('activateModelForm').submit();" style="border: none;">Ativar Modelo</a>
+                    </form> 
+                </li>
+
+                <div class="vr"></div>
 
                 <li class="nav-item">
                     <form id="EvalForm" method="post" action="{{ url_for('evaluation') }}">

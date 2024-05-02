@@ -34,7 +34,7 @@
                     </tr>
                     {% for line in list_models %}
                         <tr class="clickable-tr" onclick="document.getElementById('form{{ loop.index }}').submit();">
-                            <form id="form{{ loop.index }}" method="POST" action="{{ url_for('select_model') }}">
+                            <form id="form{{ loop.index }}" method="POST" action="{{ url_for('model_view') }}">
                                 <input type="hidden" name="id" value="{{ line['ID'] }}">
                                 <td>{{ line['ID'] }}</td>
                                 <td>{{ line['Nome'] }}</td>

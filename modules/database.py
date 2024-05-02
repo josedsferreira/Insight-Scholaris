@@ -508,8 +508,7 @@ def save_model_file(model, file_name):
     - model (object): The model to save.
     - file_name (str): The name to be given to the file.
     """
-    load_dotenv()
-    folder_path = os.getenv('MODEL_FOLDER_PATH')
+    folder_path = "Models"
 
     # Combine the folder path and the filename
     file_path = os.path.join(folder_path, file_name)
@@ -1651,6 +1650,7 @@ def list_models_w_score(database_name):
                 date_trunc('second', models.created_at) AS "Criado em"
             FROM models
             LEFT JOIN evaluations ON models.model_id = evaluations.model_id
+            WHERE models.is_active = False
             ORDER BY "Criado em" DESC
         """
 
@@ -1704,4 +1704,74 @@ def update_df_changes(database_name, df_id, changes):
         print(f"An error occurred while updating the info of dataset {df_id} in {database_name}.")
         print(str(e))
         return False #info not updated
+
+def retrieve_selected_model_info(database_name, model_id):
+    """
+    retrieves info about the selected model, including evaluations from a PostgreSQL database.
+    
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    - model_id (int): The ID of the model.
+
+    Returns:
+    - model_info (pandas.DataFrame): The dataframe containing all info of the selected model.
+    model_info has the following columns:
+
+    0-'model_id'
+    1-'model_name'
+    2-'model_type'
+    3-'is_trained'
+    4-'is_active'
+    5-'model_file_name'
+    6-'parameters'
+    7-'created_at'
+    8-'evaluation_id'
+    9-'fp'
+    10-'fn'
+    11-'tp'
+    12-'tn'
+    13-'training_dataset_id'
+    """
+
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Define the SQL query to select rows from the model table
+        query = text("""
+        SELECT *
+        FROM models
+        WHERE model_id = :model_id
+        """)
+
+        params = {'model_id': model_id}
+
+        # retrieve the dataframe with the model info
+        model_line = pd.read_sql(query, engine, params=params)
+
+        if not model_line.empty:
+            model_info = retrieve_model_info(database_name, model_id)
+            evaluations = retrieve_evaluations(database_name, model_id)
+            # Drop the 'created_at' column from the evaluations dataframe so it wont be duplicated
+            evaluations = evaluations.drop(columns=['created_at'])
+            # Join both dataframes into one
+            model_info = pd.merge(model_info, evaluations, on='model_id', how='inner')
+            # Select the desired columns
+            model_info = model_info[['model_id', \
+                                     'model_name', \
+                                        'model_type', \
+                                            'is_trained', \
+                                                'is_active', \
+                                                    'model_file_name', \
+                                                        'parameters', \
+                                                            'created_at', \
+                                                                'evaluation_id', \
+                                                                    'fp', 'fn', 'tp', 'tn', \
+                                                                        "training_dataset_id"]]
+            return model_info
+        else:
+            return None
+    except SQLAlchemyError as e:
+            print(f"An error occurred while retrieving the active model info from {database_name}.")
+            print(str(e))
 

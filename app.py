@@ -626,9 +626,8 @@ def train_model():
 @login_required
 def model_info():
 	model_info = mdb.retrieve_active_model_info(database_name=db_name)
-	#print(model_info.columns)
 	parameters = model_info['parameters'].values[0]
-	parameters = {k: v for k, v in parameters.items() if v is not None} #remove None's
+	""" parameters = {k: v for k, v in parameters.items() if v is not None} #remove None's """
 	f1_score = modeling.get_f1_score(database_name=db_name, model_id=model_info['model_id'].values[0])
 	return render_template("model/model_info.html", user_type=current_user.user_type, model_info=model_info, parameters=parameters, f1_score=f1_score)
 
@@ -638,32 +637,49 @@ def parameters():
 	parameters = mdb.retrieve_active_model_info(database_name=db_name)['parameters'].values[0]
 	return render_template("model/parameters.html", user_type=current_user.user_type, parameters=parameters)
 
-@app.route("/evaluation", methods=['GET'])
+@app.route("/evaluation", methods=['GET', 'POST'])
 @login_required
 def evaluation():
-	model_info = mdb.retrieve_active_model_info(database_name=db_name)
-	full_eval = modeling.create_full_eval(database_name=db_name, model_id=model_info['model_id'].values[0], pt=False)
-	return render_template("model/evaluation.html", user_type=current_user.user_type, full_eval=full_eval, model_info=model_info)
+	if request.method == 'POST' and 'id' in request.form:
+		id = request.form.get('id')
+		model_info = mdb.retrieve_selected_model_info(database_name=db_name, model_id=id)
+		full_eval = modeling.create_full_eval(database_name=db_name, model_id=id, pt=False)
+		return render_template("model/evaluation.html", user_type=current_user.user_type, full_eval=full_eval, model_info=model_info)
 
-@app.route("/algo", methods=['GET'])
+@app.route("/algo", methods=['GET', 'POST'])
 @login_required
 def algo():
-	return render_template("model/algo.html", user_type=current_user.user_type)
+	if request.method == 'POST' and 'algo' in request.form:
+		algo = request.form.get('algo')
+		return render_template("model/algo.html", user_type=current_user.user_type)
 
-@app.route("/select_model", methods=['GET', 'POST'])
+@app.route("/select_model", methods=['GET'])
 @login_required
 def select_model():
-	if request.method == 'GET':
-		list_models = mdb.list_models_w_score(database_name=db_name)
-		print(list_models)
-		if list_models is not None:
-			list_models = list_models.to_dict(orient='records')
-			return render_template("model/select_model.html", user_type=current_user.user_type, list_models=list_models)
-		else:
-			return render_template("model/select_model.html", user_type=current_user.user_type, list_models=None)
-	elif request.method == 'POST' and 'id' in request.form:
+	list_models = mdb.list_models_w_score(database_name=db_name)
+	if list_models is not None:
+		list_models = list_models.to_dict(orient='records')
+		return render_template("model/select_model.html", user_type=current_user.user_type, list_models=list_models)
+	else:
+		return render_template("model/select_model.html", user_type=current_user.user_type, list_models=None)
+
+@app.route("/model_view", methods=['POST', 'GET'])
+@login_required
+def model_view():
+	if request.method == 'POST' and 'id' in request.form:
+		model_id = request.form.get('id')
+		model_info = mdb.retrieve_selected_model_info(database_name=db_name, model_id=model_id)
+		parameters = model_info['parameters'].values[0]
+		f1_score = modeling.get_f1_score(database_name=db_name, model_id=model_info['model_id'].values[0])
+		return render_template("model/model_view.html", user_type=current_user.user_type, model_info=model_info, parameters=parameters, f1_score=f1_score)
+
+@app.route("/activate_model", methods=['POST'])
+@login_required
+def activate_model():
+	if 'id' in request.form:
 		model_id = request.form.get('id')
 		if mdb.set_active_model(database_name=db_name, model_id=model_id):
+			flash('Modelo ativado com sucesso', 'info')
 			return redirect(url_for('model_info'))
 		else:
 			flash('Erro ao ativar modelo', 'error')
