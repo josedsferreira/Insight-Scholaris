@@ -3,13 +3,12 @@
 {% block body %}
 
 <div class="container">
-    {% if list_df %}
+    {% if list_models %}
     <div class="body-con-1navs">
-
 
         <div>
         <div id="form-title">
-            <h5>Treinar o modelo</h5>
+            <h5>Historico de modelos</h5>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -22,48 +21,41 @@
             {% endif %}
         {% endwith %}
 
-        <div id="trainmodel-table-box">
-
-            <!-- learning_rate -->
-            <div class="mb-3">
-                <label for="split" class="form-label">Percentagem de dados para teste</label>
-                <input type="number" class="form-control" id="split" name="split" placeholder="20" value="20" min="0" max="100" step="1">
-            </div>
-
-            <label class="form-label">Selecione um dataset para treinar o modelo</label>
+        <div id="clickable-table-box">
 
             <div id="inner-table-box">
                 <table class="table">
                     <tr class="clickable-table-header">
                         <th>ID</th>
                         <th>Nome</th>
+                        <th>Tipo</th>
+                        <th>F1 Score</th>
                         <th>Criado em</th>
                     </tr>
-                    {% for line in list_df %}
-                    {% if line['Tipo'] == "De treino" %}
-                        <tr class="clickable-tr" onclick="submitSplitAndDSForm('{{ loop.index }}');">
-                            <form id="form{{ loop.index }}" method="POST" action="{{ url_for('train_model') }}">
+                    {% for line in list_models %}
+                        <tr class="clickable-tr" onclick="document.getElementById('form{{ loop.index }}').submit();">
+                            <form id="form{{ loop.index }}" method="POST" action="{{ url_for('select_model') }}">
                                 <input type="hidden" name="id" value="{{ line['ID'] }}">
-                                <input type="hidden" id="hiddenSplit{{ loop.index }}" name="split">
                                 <td>{{ line['ID'] }}</td>
                                 <td>{{ line['Nome'] }}</td>
+                                <td>{{ line['Tipo'] }}</td>
+                                <td>{{ line['F1 Score']|round(2) }}</td>
                                 <td>{{ line['Criado em'].strftime('%d-%m-%Y') }}</td>
                             </form>
                         </tr>
-                    {% endif %}
                     {% endfor %}
                 </table>
             </div>
         </div>
         </div>
-</div>
+    </div>
         {% else %}
             <!-- Não ha datasets para selecionar -->
             <div id="form-title" style="margin-top: 30px;">
-                <h5>Não há datasets para selecionar</h5>
+                <h5>Não há modelos para selecionar</h5>
             </div>
             <div>
-                <a href="{{ url_for('import_ds') }}" class="btn btn-primary">Importar novo dataset</a>
+                <a href="{{ url_for('create_model') }}" class="btn btn-primary">Criar novo modelo</a>
             </div>
             
         {% endif %}

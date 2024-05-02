@@ -53,10 +53,10 @@
         <p><strong>Numero de valores desconhecidos:</strong> {{ ds_info[5] }}</p>
         {% if ds_info[7] != 0 %}
             {% if ds_info[7] == 1 %}
-                <p><strong>Alterações:</strong>Linhas com valores desconhecidos eliminadas</p>
+                <p><strong>Alterações: </strong>Linhas com valores desconhecidos eliminadas</p>
             {% endif %}
             {% if ds_info[7] == 2 %}
-                <p><strong>Alterações:</strong>Valores desconhecidos substituidos pela moda</p>
+                <p><strong>Alterações: </strong>Valores desconhecidos substituidos pela moda</p>
             {% endif %}
         {% endif %}
     </div>

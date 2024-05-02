@@ -17,3 +17,5 @@ TODO.txt
 query.sql
 teste.html
 models/*
+static/downloads/*
+static/img/graphs/*

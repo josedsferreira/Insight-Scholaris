@@ -322,11 +322,6 @@ def alter_ds():
 
 
 # ============ MENU MODELAR ============
-""" @app.route("/modeling_menu")
-@login_required
-def modeling_menu():
-	return render_template("modeling_menu.html", user_type=current_user.user_type) """
-
 @app.route("/create_model", methods=['GET', 'POST'])
 @login_required
 def create_model():
@@ -654,6 +649,25 @@ def evaluation():
 @login_required
 def algo():
 	return render_template("model/algo.html", user_type=current_user.user_type)
+
+@app.route("/select_model", methods=['GET', 'POST'])
+@login_required
+def select_model():
+	if request.method == 'GET':
+		list_models = mdb.list_models_w_score(database_name=db_name)
+		print(list_models)
+		if list_models is not None:
+			list_models = list_models.to_dict(orient='records')
+			return render_template("model/select_model.html", user_type=current_user.user_type, list_models=list_models)
+		else:
+			return render_template("model/select_model.html", user_type=current_user.user_type, list_models=None)
+	elif request.method == 'POST' and 'id' in request.form:
+		model_id = request.form.get('id')
+		if mdb.set_active_model(database_name=db_name, model_id=model_id):
+			return redirect(url_for('model_info'))
+		else:
+			flash('Erro ao ativar modelo', 'error')
+			return redirect(url_for('select_model'))
 
 
 # ============ PREDICT ============

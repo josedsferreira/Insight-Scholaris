@@ -153,7 +153,7 @@ def retrieve_dataset_info(database_name, df_id):
                     num_unknowns AS "Numero de desconhecidos",
                     num_missing AS "Numero de valores em falta",
                     changes AS "Alterações", 
-                    date_trunc('minute', created_at) AS "Criado em"
+                    date_trunc('second', created_at) AS "Criado em"
                     FROM dataFrames 
                     WHERE df_id = :id
                     ORDER BY "Criado em" DESC
@@ -331,7 +331,7 @@ def list_datasets(database_name):
                     WHEN df_type = 2 THEN 'Para prever'
                     WHEN df_type = 3 THEN 'Previsão'
                 END AS "Tipo",
-                date_trunc('minute', created_at) AS "Criado em"
+                date_trunc('second', created_at) AS "Criado em"
                 FROM dataFrames 
                 ORDER BY "Criado em" DESC
                 """
@@ -601,7 +601,7 @@ def list_models(database_name):
                     WHEN model_type = 2 THEN 'XGBoost'
                     WHEN model_type = 3 THEN 'Random Forest'
                 END AS "Tipo",
-                date_trunc('minute', created_at) AS "Criado em"
+                date_trunc('second', created_at) AS "Criado em"
                 FROM models 
                 ORDER BY "Criado em" DESC
                 """
@@ -880,7 +880,7 @@ def list_users(database_name):
                     WHEN type = 2 THEN 'Docente'
                     WHEN type = 3 THEN 'Cientista de Dados'
                 END AS "Tipo",
-                date_trunc('minute', created_at) AS "Criado em"
+                date_trunc('second', created_at) AS "Criado em"
                 FROM users
                 WHERE is_active = TRUE
                 """
@@ -1480,6 +1480,7 @@ def deactivate_unknown_lines(database_name, df_id):
             print("Unknown lines deactivated successfully.")
 
             update_df_info(database_name, df_id)
+            update_df_changes(database_name, df_id, 1)
 
             return True
         
@@ -1530,6 +1531,7 @@ def set_unknown_to_mode(database_name, df_id):
                 return False
             
     update_df_info(database_name, df_id)
+    update_df_changes(database_name, df_id, 1)
     return True
 
 def update_df_info(database_name, df_id):
@@ -1619,3 +1621,87 @@ def set_ds_train_id(database_name, model_id, ds_id):
         print(f"An error occurred while setting the dataset ID in model {model_id} in {database_name}.")
         print(str(e))
         return False # not set
+    
+def list_models_w_score(database_name):
+    """
+    Lists all models stored in the PostgreSQL database with their evaluation scores.
+    
+    Parameters:
+    - database_name (str): The name of the PostgreSQL database.
+    
+    Returns:
+    - model_list (pandas.DataFrame): the table with the list of models and their scores.
+    """
+
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Define the SQL query to select all records from the models table
+        query = """
+            SELECT 
+                models.model_id as "ID", 
+                models.model_name as "Nome", 
+                CASE
+                    WHEN models.model_type = 1 THEN 'SVM'
+                    WHEN models.model_type = 2 THEN 'XGBoost'
+                    WHEN models.model_type = 3 THEN 'Random Forest'
+                END AS "Tipo",
+                (2.0 * evaluations.tp) / (2.0 * evaluations.tp + evaluations.fp + evaluations.fn) AS "F1 Score",
+                date_trunc('second', models.created_at) AS "Criado em"
+            FROM models
+            LEFT JOIN evaluations ON models.model_id = evaluations.model_id
+            ORDER BY "Criado em" DESC
+        """
+
+        # Execute the query and return the result as a DataFrame
+        model_list = pd.read_sql(query, engine)
+        return model_list
+    
+    except SQLAlchemyError as e:
+        print(f"An error occurred while listing the models from {database_name}.")
+        print(str(e))
+
+def update_df_changes(database_name, df_id, changes):
+    """
+    Update the changes column of a dataframe in the dataFrames table.
+
+    Parameters:
+    - database_name (str): The name of the database.
+    - df_id (int): The ID of the dataframe.
+    - changes (int): The value to insert in the changes column.
+
+    Returns:
+    - success (bool): True if the info was updated successfully, False otherwise.
+    """
+
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Store the user in the database
+        with engine.connect() as connection:
+
+            # Update the value in the table
+            query = text(f"""
+                        UPDATE dataFrames
+                        SET 
+                        changes = :changes
+                        WHERE df_id = :df_id
+                        """)
+            
+            params = {
+                        'changes': changes,
+                        'df_id': df_id
+                    }
+
+            connection.execute(query, params)
+            connection.commit()
+            print(f"Changes of dataset {df_id} updated successfully.")
+            return True #info updated successfully
+
+    except SQLAlchemyError as e:
+        print(f"An error occurred while updating the info of dataset {df_id} in {database_name}.")
+        print(str(e))
+        return False #info not updated
+
