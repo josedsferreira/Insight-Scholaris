@@ -3,13 +3,16 @@ import pandas as pd
 from dotenv import load_dotenv
 import os
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.svm import LinearSVC
 from modules import data
 from modules import database
 from modules import visualization as vz
+from time import time
+from imblearn.over_sampling import SMOTE
+import featuretools as ft
 
 load_dotenv()
 categorical_col_names = os.getenv('CATEGORICAL_COLUMN_NAMES').split(',')
@@ -70,33 +73,36 @@ def train_model(database_name, model, model_id, dataset, split, ds_id):
     bool: True if the model was trained successfully, False otherwise
     """
     try:
+        time_start = time()
         #print("0-Dataset Head:")
         #print(dataset.head(3))
 
         # Split the dataset into features and target
         # X has features minus the target column
         X = dataset.drop(['final_result'], axis=1)
-        print("1-target droped from dataset")
+        print("1/11-target droped from dataset")
 
-        """ # One Hot Encoding
-        X = pd.get_dummies(X, columns=categorical_col_names)
-        print("2-get_dummies() applied to dataset")
-
-        # Completes the get_dummies() process on the given DataFrame adding columns for which there was no value in the dataframe.
-        X = data.dummies_completer(X)
-        print("2.1-dummies_completer() applied to dataset") """
+        """ # Feature Engineering
+        print("X columns: ", X.columns)
+        print("X head: ", X.head(3))
+        data.feature_engineering(X)
+        print("1.5-Feature Engineering applied to dataset") """
 
         X = data.create_oneHotEncoder_and_encode(X)
-        print("2-encoder created and encode applied to dataset")
-
+        print("2/11-encoder created and encode applied to dataset")
 
         # y has the target column and is converted to binary
         y = dataset['final_result']
-        print("3-target column extracted from dataset into y")
+        print("3/11-target column extracted from dataset into y")
 
         # Split the data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=split)
-        print("4-dataset split into training and testing sets")
+        print("4/11-dataset split into training and testing sets")
+
+        # Apply SMOTE to the training data
+        """ sm = SMOTE()
+        X_train, y_train = sm.fit_resample(X_train, y_train)
+        print("4.1-SMOTE applied to training data") """
 
         #print("Head of X_train:")
         #print(X_train.head(3))
@@ -109,35 +115,39 @@ def train_model(database_name, model, model_id, dataset, split, ds_id):
 
         # Train the model using the training sets
         model.fit(X_train, y_train)
-        print("5-model trained")
+        print("5/11-model trained")
+        time_fit = time()
 
         # Predict the response for test dataset
         y_pred = model.predict(X_test)
-        print("6-model prediction completed")
+        print("6/11-model prediction completed")
 
         # Save the model
         database.update_model_file(database_name, model_id, model)
-        print("7-model file updated")
+        print("7/11-model file updated")
 
         # Store the evaluation in the database
         matrix = confusion_matrix(y_test, y_pred)
         database.store_evaluation(database_name, model_id, matrix)
-        print("8-evaluation stored in database")
+        print("8/11-evaluation stored in database")
 
         # set model atribute is_trained to true
         database.set_model_trained(database_name, model_id)
-        print("9-model trained set to true")
+        print("9/11-model trained set to true")
 
         if database.set_ds_train_id(database_name=database_name, model_id=model_id, ds_id=ds_id):
-            print("10-dataset train id set")
+            print("10/11-dataset train id set")
         
         # Predict the probabilities for the test dataset
         y_score = model.predict_proba(X_test)[:, 1]
         vz.create_ROC(model_id, y_test, y_score)
         vz.create_confusion_matrix(database_name, model_id)
         vz.create_PRC(model_id, y_test, y_score)
-        print("11-visualizations created")
+        print("11/11-visualizations created")
 
+        time_end = time()
+        print(f"Time to fit: {(time_fit - time_start) / 60} minutes")
+        print(f"Time elapsed: {(time_end - time_start) / 60} minutes")
         print("-train_model finished")
         return True
     except Exception as e:
@@ -195,15 +205,15 @@ def create_full_eval(database_name, model_id, pt=False):
         fn = evaluation['fn'].values[0]
         tp = evaluation['tp'].values[0]
 
-        f1_score = tp / (tp + 0.5 * (fp + fn))
-        accuracy = (tp + tn) / (tp + tn + fp + fn)
-        precision = tp / (tp + fp)
-        recall = tp / (tp + fn)
-        specificity = tn / (tn + fp)
-        fall_out = fp / (fp + tn)
-        false_discovery_rate = fp / (fp + tp)
-        false_negative_rate = fn / (fn + tp)
-        balanced_accuracy = (recall + specificity) / 2
+        f1_score = tp / float(tp + 0.5 * (fp + fn))
+        accuracy = (tp + tn) / float(tp + tn + fp + fn)
+        precision = tp / float(tp + fp)
+        recall = tp / float(tp + fn)
+        specificity = tn / float(tn + fp)
+        fall_out = fp / float(fp + tn)
+        false_discovery_rate = fp / float(fp + tp)
+        false_negative_rate = fn / float(fn + tp)
+        balanced_accuracy = (recall + specificity) / 2.0
 
         if pt:
             full_eval['Pontuação F1'] = f1_score
@@ -284,3 +294,182 @@ def predict(database_name, df, df_name):
         print(f"An error occurred while making a prediction with model {model_id}: {e}")
         return None
 
+def create_gridSearch_rf(database_name, model_name, dataset, ds_id, split):
+    """
+    Create a Random Forest with grid search
+
+    Parameters:
+    database_name (str): The name of the database
+    model_name (str): The name of the model
+    dataset (pandas dataframe): A dataframe containing the dataset
+    ds_id (int): The ID for the dataset used to train the model
+    split (float): The test size for the train-test split
+
+    Returns:
+    bool: True if the model was trained successfully, False otherwise
+    """
+    time_start = time()
+    try:
+        grid = {
+            'n_estimators': [int(x) for x in range(100, 1100, 200)],
+            'max_depth': [int(x) for x in range(5, 20, 5)],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4, 0.1, 0.2, 0.3, 0.4, 0.5]
+        }
+
+        rf = RandomForestClassifier()
+        grid_search = RandomizedSearchCV(estimator=rf, param_distributions=grid, n_iter=50, cv=3, n_jobs=-1, verbose=2)
+
+        X = dataset.drop(['final_result'], axis=1)
+        print("1-target droped from dataset")
+
+        X = data.create_oneHotEncoder_and_encode(X)
+        print("2-encoder created and encode applied to dataset")
+
+        y = dataset['final_result']
+        print("3-target column extracted from dataset into y")
+
+        # Split the data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=split)
+        print("4-dataset split into training and testing sets")
+        
+        # Fit the grid search to the data
+        grid_search.fit(X_train, y_train)
+        print("4.9- Fit complete")
+        time_fit = time()
+
+        # store model
+        model_id = database.store_model(model=grid_search, database_name=database_name, model_name=model_name, model_type=3)
+        print("5-model stored in database")
+
+        # Predict the response for test dataset
+        y_pred = grid_search.predict(X_test)
+        print("6-model prediction completed")
+
+        # Store the evaluation in the database
+        matrix = confusion_matrix(y_test, y_pred)
+        database.store_evaluation(database_name, model_id, matrix)
+        print("8-evaluation stored in database")
+
+        # set model atribute is_trained to true
+        database.set_model_trained(database_name, model_id)
+        print("9-model trained set to true")
+
+        if database.set_ds_train_id(database_name=database_name, model_id=model_id, ds_id=ds_id):
+            print("10-dataset train id set")
+        
+        # Predict the probabilities for the test dataset
+        y_score = grid_search.predict_proba(X_test)[:, 1]
+        vz.create_ROC(model_id, y_test, y_score)
+        vz.create_confusion_matrix(database_name, model_id)
+        vz.create_PRC(model_id, y_test, y_score)
+        print("11-visualizations created")
+
+        if database.set_active_model(database_name=database_name, model_id=model_id):
+            print('Modelo ativado com sucesso')
+
+        time_end = time()
+        print(f"Time to fit: {(time_fit - time_start) / 60} minutes")
+        print(f"Time elapsed: {(time_end - time_start) / 60} minutes")
+        print("-train_model finished")
+        return True
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False
+
+def train_model_w_ft(database_name, model, model_id, dataset, split, ds_id):
+    """
+    Train a model, update the saved model file and store the evaluation in the database
+    
+    Parameters:
+    database_name (str): The name of the database
+    model: A model object
+    dataset (pandas dataframe): A dataframe containing the dataset
+    model_id (int): The model ID
+    split (float): The test size for the train-test split
+    ds_id (int): The ID for the dataset used to train the model
+    
+    Returns:
+    bool: True if the model was trained successfully, False otherwise
+    """
+    try:
+        time_start = time()
+
+        # Split the dataset into features and target
+        # X has features minus the target column
+        X = dataset.drop(['final_result'], axis=1)
+        print("1-target droped from dataset")
+
+        X = data.create_oneHotEncoder_and_encode(X)
+        print("2-encoder created and encode applied to dataset")
+
+        # y has the target column and is converted to binary
+        y = dataset['final_result']
+        print("3-target column extracted from dataset into y")
+
+        # Feature Engineering
+        es = ft.EntitySet(id = 'data')
+        print("1/4")
+
+        # Convert column names to strings
+        X.columns = X.columns.astype(str)
+        print("1.1/4")
+
+        # Add the entire data frame as an entity
+        es = es.add_dataframe(dataframe_name='data', dataframe=X, index='index')
+        print("2/4")
+
+        # Run deep feature synthesis with transformation primitives
+        feature_matrix, feature_defs = ft.dfs(entityset=es, target_dataframe_name='data',
+                                            agg_primitives=[],
+                                            trans_primitives = ['add_numeric', 'subtract_numeric', 'multiply_numeric', 'divide_numeric'])
+        print("3/4")
+        X = feature_matrix
+        print("4/4")
+        print("3.1-Feature Engineering applied to dataset")
+        print(X.head(3))
+
+        # Split the data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=split)
+        print("4-dataset split into training and testing sets")
+
+        # Train the model using the training sets
+        model.fit(X_train, y_train)
+        print("5-model trained")
+        time_fit = time()
+
+        # Predict the response for test dataset
+        y_pred = model.predict(X_test)
+        print("6-model prediction completed")
+
+        # Save the model
+        database.update_model_file(database_name, model_id, model)
+        print("7-model file updated")
+
+        # Store the evaluation in the database
+        matrix = confusion_matrix(y_test, y_pred)
+        database.store_evaluation(database_name, model_id, matrix)
+        print("8-evaluation stored in database")
+
+        # set model atribute is_trained to true
+        database.set_model_trained(database_name, model_id)
+        print("9-model trained set to true")
+
+        if database.set_ds_train_id(database_name=database_name, model_id=model_id, ds_id=ds_id):
+            print("10-dataset train id set")
+        
+        # Predict the probabilities for the test dataset
+        y_score = model.predict_proba(X_test)[:, 1]
+        vz.create_ROC(model_id, y_test, y_score)
+        vz.create_confusion_matrix(database_name, model_id)
+        vz.create_PRC(model_id, y_test, y_score)
+        print("11-visualizations created")
+
+        time_end = time()
+        print(f"Time to fit: {(time_fit - time_start) / 60} minutes")
+        print(f"Time elapsed: {(time_end - time_start) / 60} minutes")
+        print("-train_model finished")
+        return True
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False

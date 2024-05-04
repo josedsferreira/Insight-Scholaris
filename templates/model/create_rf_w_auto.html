@@ -11,7 +11,17 @@
                 <h5>Criar modelo Random Forest</h5>
             </div>
 
-            <div id="form-box">
+            <form action="{{url_for('create_rf')}}" method="post">
+                <input type="hidden" name="automated_params" value="automated_params">
+                <div id="submit-bt-div-1">
+                    <input class="btn btn-primary" type="submit" value="Parametros automatizados" style="width: 265px; text-align: center;">
+                </div>
+            </form>
+            <button type="button" class="btn btn-primary" id="custom-param-button" style="width: 265px; text-align: center;">
+                Parametros personalizados
+            </button>
+
+            <div id="form-box" style="display: none;">
 
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
@@ -139,7 +149,7 @@
                 
 
             </div> <!-- Botao de submeter deve estar fora da caixa -->
-                    <div id="submit-bt-div">
+                    <div id="submit-bt-div" style="display: none;">
                         <input class="btn btn-primary" type="submit" value="Criar">
                     </div>
                 </form>

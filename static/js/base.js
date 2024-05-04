@@ -361,8 +361,16 @@ function updateMinSamplesLeafInputs() {
 
 
 
-
-
+/* Show custom params form */
+var buttonElement = document.getElementById('custom-param-button');
+if (buttonElement) {
+    buttonElement.addEventListener('click', function() {
+        document.getElementById("form-box").style.display = "block";
+        document.getElementById("submit-bt-div").style.display = "block";
+        document.getElementById("submit-bt-div-1").style.display = "none";
+        this.style.display = "none";
+    });
+}
 
 
 

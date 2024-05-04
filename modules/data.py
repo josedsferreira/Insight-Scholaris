@@ -1,10 +1,11 @@
+import math
 import pandas as pd
 import os
 import json
 from dotenv import load_dotenv
 from sklearn.preprocessing import OneHotEncoder
 from joblib import dump, load
-from modules import database
+import numpy as np
 
 load_dotenv()
 column_names = os.getenv('COLUMN_NAMES').split(',')
@@ -361,3 +362,60 @@ def get_mode(df, column_name):
     """
     return df[column_name].mode()[0]
 
+def feature_engineering(df):
+    """
+    Perform feature engineering on the given DataFrame.
+    Adds new features by combining existing features.
+
+    <Feature: num_of_prev_attempts + studied_credits>, 
+    <Feature: num_of_prev_attempts / studied_credits>, 
+    <Feature: studied_credits / num_of_prev_attempts>, 
+    <Feature: num_of_prev_attempts * studied_credits>, 
+    <Feature: num_of_prev_attempts - studied_credits>,
+    <Feature: num_of_prev_attempts ^ 2>,
+    <Feature: studied_credits ^ 2>,
+    <Feature: num_of_prev_attempts ^ 3>,
+    <Feature: studied_credits ^ 3>,
+    <Feature: log(num_of_prev_attempts)>,
+    <Feature: log(studied_credits)>
+
+    Args:
+        df (pandas.DataFrame): The DataFrame to perform feature engineering on.
+
+    Returns:
+        pandas.DataFrame: The DataFrame with the new features added.
+    """
+    #Feature: num_of_prev_attempts + studied_credits
+    df['num_of_prev_attempts + studied_credits'] = df['num_of_prev_attempts'] + df['studied_credits']
+
+    #Feature: num_of_prev_attempts / studied_credits
+    df['num_of_prev_attempts / studied_credits'] = np.where(df['studied_credits'] == 0, 0, df['num_of_prev_attempts'] / df['studied_credits'])
+
+    #Feature: studied_credits / num_of_prev_attempts
+    df['studied_credits / num_of_prev_attempts'] = np.where(df['num_of_prev_attempts'] == 0, 0, df['studied_credits'] / df['num_of_prev_attempts'])
+
+    #Feature: num_of_prev_attempts * studied_credits
+    df['num_of_prev_attempts * studied_credits'] = df['num_of_prev_attempts'] * df['studied_credits']
+
+    #Feature: num_of_prev_attempts - studied_credits
+    df['num_of_prev_attempts - studied_credits'] = df['num_of_prev_attempts'] - df['studied_credits']
+
+    #Feature: num_of_prev_attempts ^ 2
+    df['num_of_prev_attempts ^ 2'] = df['num_of_prev_attempts'] ** 2
+
+    #Feature: studied_credits ^ 2
+    df['studied_credits ^ 2'] = df['studied_credits'] ** 2
+
+    #Feature: num_of_prev_attempts ^ 3
+    df['num_of_prev_attempts ^ 3'] = df['num_of_prev_attempts'] ** 3
+
+    #Feature: studied_credits ^ 3
+    df['studied_credits ^ 3'] = df['studied_credits'] ** 3
+
+    #Feature: log(num_of_prev_attempts)
+    df['log(num_of_prev_attempts)'] = df['num_of_prev_attempts'].apply(lambda x: 0 if x == 0 else math.log(x))
+
+    #Feature: log(studied_credits)
+    df['log(studied_credits)'] = df['studied_credits'].apply(lambda x: 0 if x == 0 else math.log(x))
+
+    return df

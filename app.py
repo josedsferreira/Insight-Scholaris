@@ -524,6 +524,14 @@ def create_xgb():
 @app.route("/create_rf", methods=['GET', 'POST'])
 @login_required
 def create_rf():
+	if request.method == 'POST' and 'automated_params' in request.form:
+		session['model']['automated_params'] = True
+		session.modified = True
+		list_df = mdb.list_datasets(database_name=db_name)
+		if list_df is not None:
+			list_df = list_df.to_dict(orient='records')
+		return render_template("model/train_model.html", user_type=current_user.user_type, list_df=list_df)
+
 	model_params = session.get('model_params', None) # if there is nothing in the session, return None
 	if model_params is None:
 		flash('Erro: Parâmetros do modelo não encontrados', 'error')
@@ -601,23 +609,34 @@ def train_model():
 		ds_id = request.form.get('id')
 		dataset = mdb.retrieve_dataset(database_name=db_name, df_id=ds_id, decode=False)
 		split = int(request.form.get('split')) / 100 # convert to percentage
-		model_id = session['model']['active_model_id']
-		model = mdb.retrieve_model(database_name=db_name, model_id=model_id)
-
-		if model is not None:
-			if modeling.train_model(database_name=db_name, model=model, model_id=model_id, dataset=dataset, split=split, ds_id=ds_id):
-				#flash('Modelo treinado com sucesso', 'info')
+		if session['model'].get('automated_params', False) == True:
+			if modeling.create_gridSearch_rf(database_name=db_name, model_name=session['model']['model_name'], dataset=dataset, ds_id=ds_id, split=split):
+				flash('Modelo treinado com sucesso', 'info')
 				model_info = mdb.retrieve_active_model_info(database_name=db_name)
 				parameters = model_info['parameters'].values[0]
-				parameters = {k: v for k, v in parameters.items() if v is not None} #remove None's
 				f1_score = modeling.get_f1_score(database_name=db_name, model_id=model_info['model_id'].values[0])
 				return render_template("model/model_info.html", user_type=current_user.user_type, model_info=model_info, parameters=parameters, f1_score=f1_score)
 			else:
 				flash('Erro ao treinar modelo', 'error')
-				return render_template("teste.html", user_type=current_user.user_type)
+				return render_template("create_model.html", user_type=current_user.user_type)
 		else:
-			flash('Erro ao carregar modelo', 'error')
-			return render_template("model/train_model.html", user_type=current_user.user_type)
+			model_id = session['model']['active_model_id']
+			model = mdb.retrieve_model(database_name=db_name, model_id=model_id)
+
+			if model is not None:
+				if modeling.train_model(database_name=db_name, model=model, model_id=model_id, dataset=dataset, split=split, ds_id=ds_id):
+					flash('Modelo treinado com sucesso', 'info')
+					model_info = mdb.retrieve_active_model_info(database_name=db_name)
+					parameters = model_info['parameters'].values[0]
+					#parameters = {k: v for k, v in parameters.items() if v is not None} #remove None's
+					f1_score = modeling.get_f1_score(database_name=db_name, model_id=model_info['model_id'].values[0])
+					return render_template("model/model_info.html", user_type=current_user.user_type, model_info=model_info, parameters=parameters, f1_score=f1_score)
+				else:
+					flash('Erro ao treinar modelo', 'error')
+					return render_template("teste.html", user_type=current_user.user_type)
+			else:
+				flash('Erro ao carregar modelo', 'error')
+				return render_template("model/train_model.html", user_type=current_user.user_type)
 	
 	elif request.method == 'GET':
 		return render_template("model/train_model.html", user_type=current_user.user_type, list_df=list_df)

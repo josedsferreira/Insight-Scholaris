@@ -359,8 +359,17 @@ def store_model(model, database_name, model_name, model_type):
     """
 
     model_params = model.get_params()
-    # Convert 'Missing' value from NaN to None so that JSON accepts it
-    model_params['missing'] = None
+    """ # Convert 'Missing' value from NaN to None so that JSON accepts it
+    model_params['missing'] = None """
+    # Remove parameters that are not JSON serializable
+    def is_jsonable(x):
+        try:
+            json.dumps(x)
+            return True
+        except (TypeError, OverflowError):
+            return False
+    model_params = {k: (None if pd.isnull(v) else v) for k, v in model_params.items() if is_jsonable(v)}
+
     json_params = json.dumps(model_params)
 
     try:
@@ -692,7 +701,7 @@ def store_evaluation(database_name, model_id, matrix):
     - success (bool): True if the evaluations were stored successfully, False otherwise.
     """
 
-    fp, fn, tp, tn = matrix.ravel()
+    tn, fp, fn, tp = matrix.ravel()
     
     # Convert numpy.int64 types to int
     fp, fn, tp, tn = int(fp), int(fn), int(tp), int(tn)
@@ -1651,6 +1660,7 @@ def list_models_w_score(database_name):
             FROM models
             LEFT JOIN evaluations ON models.model_id = evaluations.model_id
             WHERE models.is_active = False
+            AND models.is_trained = True
             ORDER BY "Criado em" DESC
         """
 
@@ -1774,4 +1784,3 @@ def retrieve_selected_model_info(database_name, model_id):
     except SQLAlchemyError as e:
             print(f"An error occurred while retrieving the active model info from {database_name}.")
             print(str(e))
-
