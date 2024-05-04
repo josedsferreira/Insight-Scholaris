@@ -57,7 +57,7 @@ def create_randomForest_model(model_params):
     model = RandomForestClassifier(**model_params)
     return model
 
-def train_model(database_name, model, model_id, dataset, split, ds_id):
+def train_model(database_name, model, model_id, dataset, split, ds_id, fe=False):
     """
     Train a model, update the saved model file and store the evaluation in the database
     
@@ -68,6 +68,7 @@ def train_model(database_name, model, model_id, dataset, split, ds_id):
     model_id (int): The model ID
     split (float): The test size for the train-test split
     ds_id (int): The ID for the dataset used to train the model
+    fe (bool): A boolean indicating whether to use feature engineering
     
     Returns:
     bool: True if the model was trained successfully, False otherwise
@@ -82,11 +83,12 @@ def train_model(database_name, model, model_id, dataset, split, ds_id):
         X = dataset.drop(['final_result'], axis=1)
         print("1/11-target droped from dataset")
 
-        """ # Feature Engineering
-        print("X columns: ", X.columns)
-        print("X head: ", X.head(3))
-        data.feature_engineering(X)
-        print("1.5-Feature Engineering applied to dataset") """
+        if fe:
+            # Feature Engineering
+            print("X columns: ", X.columns)
+            print("X head: ", X.head(3))
+            X = data.feature_engineering(X)
+            print("1.5-Feature Engineering applied to dataset")
 
         X = data.create_oneHotEncoder_and_encode(X)
         print("2/11-encoder created and encode applied to dataset")
