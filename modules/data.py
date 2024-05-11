@@ -323,8 +323,8 @@ def create_oneHotEncoder_and_encode(df):
     # Transform the DataFrame and convert the sparse matrix to a dense array
     df_encoded = pd.DataFrame(encoder.transform(df[categorical_col_names]).toarray())
 
-    # Convert the data type of the columns to int
-    df_encoded = df_encoded.astype(int)
+    # Convert the data type of the columns to int (ou bool?)
+    df_encoded = df_encoded.astype(bool)
 
     return df_encoded
 
@@ -344,8 +344,8 @@ def oneHotEncode(df):
     # Transform the DataFrame and convert the sparse matrix to a dense array
     df_encoded = pd.DataFrame(encoder.transform(df[categorical_col_names]).toarray())
 
-    # Convert the data type of the columns to int
-    df_encoded = df_encoded.astype(int)
+    # Convert the data type of the columns to int (ou bool?)
+    df_encoded = df_encoded.astype(bool)
 
     return df_encoded
 

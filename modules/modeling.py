@@ -177,7 +177,9 @@ def get_f1_score(database_name, model_id):
         fn = evaluation['fn'].values[0]
         tp = evaluation['tp'].values[0]
 
-        f1_score = tp / (tp + 0.5 * (fp + fn))
+        precision = tp / float(tp + fp)
+        recall = tp / float(tp + fn)
+        f1_score = 2 * (precision * recall) / float(precision + recall)
 
         return f1_score
     except Exception as e:
