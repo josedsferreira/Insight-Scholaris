@@ -120,3 +120,12 @@ CREATE TABLE scientists (
     scientist_id SERIAL PRIMARY KEY REFERENCES users(user_id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ); */
+
+
+
+
+
+
+/* Primeiro povoamento: */
+INSERT INTO users (full_name, email, password, num_id, type) 
+                    VALUES ('admin', 'admin@admin.com', 'admin', 0, 1)

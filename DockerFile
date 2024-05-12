@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.8-slim-buster
+FROM python:3.9.17-slim-buster
 
 # Set the working directory in the container to /app
 WORKDIR /app
@@ -15,16 +15,22 @@ ENV USER_POSTGRES='postgres' \
     CATEGORICAL_COLUMN_NAMES="code_module,code_presentation,gender,region,highest_education,imd_band,age_band,disability" \
     SECRET_KEY="34395748a9a33f1de1ffd8fcacc8cbcd41e21f6d8c083687" \
     DB_NAME="is_db_prototype" \
-    MODEL_FOLDER_PATH="\\Models"
+    MODEL_FOLDER_PATH="/Models"
 
 
 RUN apt-get -q -y update
 
+# Install libpq-dev (necessario para o psycopg2 aparentemente) e tk (aparentemente nao vem com a imagem do python)
+RUN apt-get install -y libpq-dev
+RUN apt-get install -y tk
+
+# Upgrade pip
+RUN pip install --upgrade pip
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Make port 80 available to the world outside this container
-EXPOSE 80
+# Make port 5000 available to the world outside this container
+EXPOSE 5000
 
 # Run app.py when the container launches
 CMD ["python", "app.py"]

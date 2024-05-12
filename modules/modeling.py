@@ -1,9 +1,7 @@
-import json
-import pandas as pd
 from dotenv import load_dotenv
 import os
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
+from sklearn.model_selection import RandomizedSearchCV, train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.svm import LinearSVC
@@ -11,7 +9,7 @@ from modules import data
 from modules import database
 from modules import visualization as vz
 from time import time
-from imblearn.over_sampling import SMOTE
+#from imblearn.over_sampling import SMOTE
 import featuretools as ft
 
 load_dotenv()

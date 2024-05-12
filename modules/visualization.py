@@ -1,9 +1,7 @@
-from modules import data
 from modules import database
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from sklearn import metrics
 from sklearn.metrics import precision_recall_curve, roc_curve, auc
 
 def create_ROC(model_id, y_test, y_score):

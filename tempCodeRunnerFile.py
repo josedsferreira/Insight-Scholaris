@@ -1,1 +1,0 @@
-trans_primitives = ['add_numeric', 'subtract_numeric', 'multiply_numeric', 'divide_numeric', 'mode', 'num_unique']
