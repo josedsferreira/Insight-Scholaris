@@ -454,6 +454,12 @@ thead, .clickable-table-header {
     /* height: 400px; */
     overflow: auto;
 }
+#ds-head td:nth-child(12) {
+    background-color: lightblue;
+  }
+#ds-head th:nth-child(12) {
+    background-color: rgb(101, 154, 172);
+}
 
 /* ====== New Base (Navbar) ====== */
 

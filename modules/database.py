@@ -1783,3 +1783,64 @@ def retrieve_selected_model_info(database_name, model_id):
     except SQLAlchemyError as e:
             print(f"An error occurred while retrieving the active model info from {database_name}.")
             print(str(e))
+
+def create_first_user():
+    """
+    Create the first user (admin)
+    
+    Returns:
+    - success (bool): True if the user was created successfully, False otherwise.
+    """
+
+    #Parameters:
+    full_name = "admin"
+    email = "admin@admin.com"
+    num_id = 0
+    type = 1
+    load_dotenv()
+    database_name = os.getenv("DB_NAME")
+
+
+    # Hash the default password
+    hashed_default_password = bcrypt.hashpw("1234".encode(), bcrypt.gensalt())
+    string_password = hashed_default_password.decode('utf-8')
+
+    try:
+        # Create a connection to PostgreSQL database
+        engine = create_engine(connection_link(database_name))
+
+        # Store the user in the database
+        with engine.connect() as connection:
+
+            # Insert a record into the users table if the table is empty
+            query = text(f"""
+                         INSERT INTO users (
+                         full_name, email, password, num_id, type) 
+                         SELECT :full_name, :email, :password, :num_id, :type
+                         WHERE NOT EXISTS (
+                             SELECT 1 FROM users
+                         )
+                         RETURNING user_id
+                         """)
+            
+            params = {
+                        'full_name': full_name,
+                        'email': email,
+                        'password': string_password,
+                        'num_id': num_id,
+                        'type': type
+                    }
+            
+            result = connection.execute(query, params)
+            connection.commit()
+            
+            # Check if a new user was inserted
+            if result.rowcount == 0:
+                print(f"The users table in {database_name} is not empty.")
+                return False #user not created
+            
+            return True #user created successfully
+    except SQLAlchemyError as e:
+        print(f"An error occurred while storing the user {email} in {database_name}.")
+        print(str(e))
+        return False #user not created

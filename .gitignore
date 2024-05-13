@@ -20,3 +20,5 @@ models/*
 static/downloads/*
 static/img/graphs/*
 teste.ipynb
+docker-compose.yaml
+DockerFile

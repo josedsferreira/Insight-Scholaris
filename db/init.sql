@@ -127,5 +127,5 @@ CREATE TABLE scientists (
 
 
 /* Primeiro povoamento: */
-INSERT INTO users (full_name, email, password, num_id, type) 
-                    VALUES ('admin', 'admin@admin.com', 'admin', 0, 1)
+/* INSERT INTO users (full_name, email, num_id, type) 
+                    VALUES ('admin', 'admin@admin.com', 0, 1) */

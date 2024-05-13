@@ -241,7 +241,9 @@ def ds_menu():
 			flash('Selecione um dataset', 'error')
 			return render_template("datasets/select_ds.html", user_type=current_user.user_type)
 		ds_info = mdb.retrieve_dataset_info(database_name=db_name, df_id=ds_id)
+		print(ds_info)
 		ds_head = mdb.retrieve_head(database_name=db_name, df_id=ds_id, n_rows=5)
+		#ds_head = ds_head.style.apply(lambda x: ['background: lightblue' if x.name == 'final_result' else '' for i in x], axis=0)
 		ds_head = ds_head.to_html(classes='table')
 		return render_template("datasets/ds_menu.html", \
 						 user_type=current_user.user_type, \
@@ -754,6 +756,7 @@ def select_prediction():
 		return render_template("predict/select_prediction.html", user_type=current_user.user_type, list_df=list_df)
 	else:
 		return render_template("predict/select_prediction.html", user_type=current_user.user_type, list_df=list_df)
+
 
 # ============ MAIN ============
 def main():

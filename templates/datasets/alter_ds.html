@@ -38,7 +38,9 @@
 
         <div>
             <div>
-                <h4>Alterar dataset</h4>
+                {% if ds_info %}
+                    <h4>Alterar dataset {{ ds_info[1] }}</h4>
+                {% endif %}
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         <ul class="flashes">
