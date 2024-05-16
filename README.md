@@ -1,5 +1,6 @@
 # Insight Scholaris - Academic Success Prediction Web App
 
+(Portuguese version below)
 A web app designed to predict students' academic success and enable educators to intervene to improve outcomes. 
 It allows for the creation of predictive models and their utilization to predict whether students will pass the course.
 It uses a Flask server and a Postgres database.
